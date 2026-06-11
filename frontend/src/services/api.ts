@@ -106,4 +106,24 @@ export const friendLinkApi = {
         api.put('/friend-links/admin/reorder', { orders }),
 };
 
+export const bannerApi = {
+    getPublicBanners: () =>
+        api.get('/banners'),
+
+    adminGetAllBanners: () =>
+        api.get('/banners/admin/all'),
+
+    adminCreateBanner: (data: { title: string; subtitle?: string; imageUrl: string; linkUrl?: string; startDate: string; endDate: string; sortOrder?: number; isEnabled?: boolean }) =>
+        api.post('/banners/admin', data),
+
+    adminUpdateBanner: (id: number, data: { title?: string; subtitle?: string; imageUrl?: string; linkUrl?: string; startDate?: string; endDate?: string; sortOrder?: number; isEnabled?: boolean }) =>
+        api.put(`/banners/admin/${id}`, data),
+
+    adminDeleteBanner: (id: number) =>
+        api.delete(`/banners/admin/${id}`),
+
+    adminReorderBanners: (orders: Array<{ id: number; sortOrder: number }>) =>
+        api.put('/banners/admin/reorder', { orders }),
+};
+
 export default api;

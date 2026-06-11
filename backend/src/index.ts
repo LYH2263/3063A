@@ -14,6 +14,7 @@ import settingsRoutes from './routes/settings';
 import commentRoutes from './routes/comment';
 import collectionRoutes from './routes/collection';
 import friendLinkRoutes from './routes/friendLink';
+import bannerRoutes from './routes/banner';
 
 dotenv.config();
 
@@ -37,6 +38,7 @@ app.use('/api/upload', uploadRoutes);
 app.use('/api/comments', commentRoutes);
 app.use('/api/collections', collectionRoutes);
 app.use('/api/friend-links', friendLinkRoutes);
+app.use('/api/banners', bannerRoutes);
 
 app.get('/', (req, res) => {
     res.send('API is running successfully!');

@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import api from '../../services/api';
 import { Button } from '../../components/ui/Button';
+import { BannerCarousel } from '../../components/BannerCarousel';
 
 const API_ROOT = (import.meta.env.VITE_API_URL || 'http://localhost:8063/api').replace(/\/api$/, '');
 
@@ -16,6 +17,8 @@ export const Home = () => {
 
     return (
         <div className="space-y-24 pb-20">
+            <BannerCarousel />
+
             {/* Hero Section */}
             <section className="text-center pt-20 pb-10">
                 <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10 text-primary text-sm font-medium mb-6">

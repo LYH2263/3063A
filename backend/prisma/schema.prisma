@@ -183,3 +183,20 @@ model FriendLink {
 
   @@index([sortOrder])
 }
+
+model Banner {
+  id          Int      @id @default(autoincrement())
+  title       String
+  subtitle    String?
+  imageUrl    String
+  linkUrl     String?
+  startDate   DateTime
+  endDate     DateTime
+  sortOrder   Int      @default(0)
+  isEnabled   Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([sortOrder])
+  @@index([isEnabled, startDate, endDate])
+}
