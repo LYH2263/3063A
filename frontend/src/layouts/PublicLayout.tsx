@@ -23,6 +23,7 @@ export const PublicLayout = () => {
                             <nav className="hidden md:flex gap-6 text-sm font-medium text-gray-600 dark:text-gray-300">
                                 <Link to="/" className="hover:text-primary transition-colors">首页</Link>
                                 <Link to="/works" className="hover:text-primary transition-colors">作品集</Link>
+                                <Link to="/collections" className="hover:text-primary transition-colors">合集</Link>
                                 {user && <Link to="/profile" className="hover:text-primary transition-colors">个人主页</Link>}
                             </nav>
                         </div>

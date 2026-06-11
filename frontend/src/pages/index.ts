@@ -6,9 +6,12 @@ export { AdminMessages } from './admin/Messages';
 export { AdminComments } from './admin/Comments';
 export { AdminSettings } from './admin/Settings';
 export { AdminOperationLogs } from './admin/OperationLogs';
+export { AdminCollections } from './admin/Collections';
 
 export { Home } from './public/Home';
 export { Works } from './public/Works';
+export { Collections } from './public/Collections';
+export { CollectionDetail } from './public/CollectionDetail';
 export { Login } from './public/Login';
 export { Register } from './public/Register';
 export { Profile } from './public/Profile';

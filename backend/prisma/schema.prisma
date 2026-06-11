@@ -58,18 +58,42 @@ model User {
 }
 
 model Work {
-  id           Int           @id @default(autoincrement())
+  id           Int              @id @default(autoincrement())
   title        String
-  description  String        @db.Text
-  tags         String        // JSON array fallback
+  description  String           @db.Text
+  tags         String           // JSON array fallback
   category     String
   mediaUrl     String
-  status       WorkStatus    @default(PUBLISHED)
-  viewCount    Int           @default(0)
-  createdAt    DateTime      @default(now())
-  updatedAt    DateTime      @updatedAt
+  status       WorkStatus       @default(PUBLISHED)
+  viewCount    Int              @default(0)
+  createdAt    DateTime         @default(now())
+  updatedAt    DateTime         @updatedAt
   interactions Interaction[]
   comments     Comment[]
+  collections  CollectionWork[]
+}
+
+model Collection {
+  id          Int              @id @default(autoincrement())
+  title       String
+  description String           @db.Text
+  coverUrl    String?
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
+  works       CollectionWork[]
+}
+
+model CollectionWork {
+  collectionId Int
+  workId       Int
+  sortOrder    Int        @default(0)
+  createdAt    DateTime   @default(now())
+
+  collection   Collection @relation(fields: [collectionId], references: [id], onDelete: Cascade)
+  work         Work       @relation(fields: [workId], references: [id], onDelete: Cascade)
+
+  @@id([collectionId, workId])
+  @@index([sortOrder])
 }
 
 model Interaction {

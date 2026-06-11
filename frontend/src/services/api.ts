@@ -54,4 +54,36 @@ export const commentApi = {
         api.delete(`/comments/admin/${id}`),
 };
 
+export const collectionApi = {
+    getCollections: () =>
+        api.get('/collections'),
+
+    getCollectionDetail: (id: number) =>
+        api.get(`/collections/${id}`),
+
+    adminGetCollections: () =>
+        api.get('/collections/admin/all'),
+
+    adminGetCollectionDetail: (id: number) =>
+        api.get(`/collections/admin/${id}`),
+
+    adminCreateCollection: (data: { title: string; description: string; coverUrl?: string }) =>
+        api.post('/collections/admin', data),
+
+    adminUpdateCollection: (id: number, data: { title?: string; description?: string; coverUrl?: string }) =>
+        api.put(`/collections/admin/${id}`, data),
+
+    adminDeleteCollection: (id: number) =>
+        api.delete(`/collections/admin/${id}`),
+
+    adminAddWorks: (id: number, workIds: number[]) =>
+        api.post(`/collections/admin/${id}/works`, { workIds }),
+
+    adminRemoveWorks: (id: number, workIds: number[]) =>
+        api.delete(`/collections/admin/${id}/works`, { data: { workIds } }),
+
+    adminReorderWorks: (id: number, orders: Array<{ workId: number; sortOrder: number }>) =>
+        api.put(`/collections/admin/${id}/reorder`, { orders }),
+};
+
 export default api;

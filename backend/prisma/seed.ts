@@ -8,6 +8,8 @@ async function main() {
 
     // 0. Optional: Clear existing data to prevent duplicates on re-run
     // We only clear works, messages and logs to keep users safe but here we can clear all if needed
+    await prisma.collectionWork.deleteMany();
+    await prisma.collection.deleteMany();
     await prisma.interaction.deleteMany();
     await prisma.operationLog.deleteMany();
     await prisma.message.deleteMany();
@@ -119,6 +121,50 @@ async function main() {
 
     for (const work of worksData) {
         await prisma.work.create({ data: work });
+    }
+
+    // 3.5 Create Collections and associate works
+    const allWorks = await prisma.work.findMany();
+    const publishedWorks = allWorks.filter(w => w.status === 'PUBLISHED');
+
+    const collectionsData = [
+        {
+            title: 'UI 设计精选',
+            description: '精选的界面设计作品，包含移动端、Web 端的优秀交互设计案例。',
+            coverUrl: '/uploads/ui_travel.png',
+            works: publishedWorks.filter(w => w.category === 'UI设计').map(w => w.id),
+        },
+        {
+            title: '数字艺术创作',
+            description: '包含数字绘画、3D 渲染等多种形式的数字艺术作品合集。',
+            coverUrl: null,
+            works: publishedWorks.filter(w => ['数字绘画', '3D渲染'].includes(w.category)).map(w => w.id),
+        },
+        {
+            title: '摄影系列',
+            description: '风光、人文等各类摄影作品合集，记录生活中的美好瞬间。',
+            coverUrl: null,
+            works: allWorks.filter(w => w.category === '摄影展示').map(w => w.id),
+        },
+    ];
+
+    for (const col of collectionsData) {
+        const collection = await prisma.collection.create({
+            data: {
+                title: col.title,
+                description: col.description,
+                coverUrl: col.coverUrl,
+            },
+        });
+        if (col.works.length > 0) {
+            await prisma.collectionWork.createMany({
+                data: col.works.map((workId, index) => ({
+                    collectionId: collection.id,
+                    workId,
+                    sortOrder: index,
+                })),
+            });
+        }
     }
 
     // 4. Create Messages

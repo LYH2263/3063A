@@ -7,8 +7,8 @@ import AdminLayout from './layouts/AdminLayout';
 import PublicLayout from './layouts/PublicLayout';
 
 import {
-  AdminDashboard, AdminWorks, AdminUsers, AdminStyles, AdminMessages, AdminComments, AdminSettings, AdminOperationLogs,
-  Home, Works, Login, Register, Profile, WorkDetail
+  AdminDashboard, AdminWorks, AdminUsers, AdminStyles, AdminMessages, AdminComments, AdminSettings, AdminOperationLogs, AdminCollections,
+  Home, Works, Collections, CollectionDetail, Login, Register, Profile, WorkDetail
 } from './pages';
 
 const App = () => {
@@ -23,6 +23,8 @@ const App = () => {
                 <Route path="/" element={<Home />} />
                 <Route path="/works" element={<Works />} />
                 <Route path="/works/:id" element={<WorkDetail />} />
+                <Route path="/collections" element={<Collections />} />
+                <Route path="/collections/:id" element={<CollectionDetail />} />
                 <Route path="/login" element={<Login />} />
                 <Route path="/register" element={<Register />} />
                 <Route path="/profile" element={<Profile />} />
@@ -32,6 +34,7 @@ const App = () => {
               <Route path="/admin" element={<AdminLayout />}>
                 <Route index element={<AdminDashboard />} />
                 <Route path="works" element={<AdminWorks />} />
+                <Route path="collections" element={<AdminCollections />} />
                 <Route path="users" element={<AdminUsers />} />
                 <Route path="styles" element={<AdminStyles />} />
                 <Route path="messages" element={<AdminMessages />} />
