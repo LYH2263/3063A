@@ -7,6 +7,7 @@ export { AdminComments } from './admin/Comments';
 export { AdminSettings } from './admin/Settings';
 export { AdminOperationLogs } from './admin/OperationLogs';
 export { AdminCollections } from './admin/Collections';
+export { AdminFriendLinks } from './admin/FriendLinks';
 
 export { Home } from './public/Home';
 export { Works } from './public/Works';

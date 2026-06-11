@@ -86,4 +86,24 @@ export const collectionApi = {
         api.put(`/collections/admin/${id}/reorder`, { orders }),
 };
 
+export const friendLinkApi = {
+    getPublicFriendLinks: () =>
+        api.get('/friend-links'),
+
+    adminGetAllFriendLinks: () =>
+        api.get('/friend-links/admin/all'),
+
+    adminCreateFriendLink: (data: { name: string; url: string; logoUrl?: string; sortOrder?: number; isEnabled?: boolean }) =>
+        api.post('/friend-links/admin', data),
+
+    adminUpdateFriendLink: (id: number, data: { name?: string; url?: string; logoUrl?: string; sortOrder?: number; isEnabled?: boolean }) =>
+        api.put(`/friend-links/admin/${id}`, data),
+
+    adminDeleteFriendLink: (id: number) =>
+        api.delete(`/friend-links/admin/${id}`),
+
+    adminReorderFriendLinks: (orders: Array<{ id: number; sortOrder: number }>) =>
+        api.put('/friend-links/admin/reorder', { orders }),
+};
+
 export default api;

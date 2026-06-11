@@ -170,3 +170,16 @@ model OperationLog {
   ip        String?
   createdAt DateTime @default(now())
 }
+
+model FriendLink {
+  id        Int      @id @default(autoincrement())
+  name      String
+  url       String
+  logoUrl   String?
+  sortOrder Int      @default(0)
+  isEnabled Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([sortOrder])
+}

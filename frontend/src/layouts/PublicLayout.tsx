@@ -1,12 +1,26 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { Outlet, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { cn } from '../lib/utils';
 import { useStyle } from '../context/StyleContext';
+import { friendLinkApi } from '../services/api';
 
 export const PublicLayout = () => {
     const { user, logout, isAdmin } = useAuth();
     const { style } = useStyle();
+    const [friendLinks, setFriendLinks] = useState<any[]>([]);
+
+    useEffect(() => {
+        const fetchFriendLinks = async () => {
+            try {
+                const res: any = await friendLinkApi.getPublicFriendLinks();
+                setFriendLinks(res.data || []);
+            } catch {
+                setFriendLinks([]);
+            }
+        };
+        fetchFriendLinks();
+    }, []);
 
     return (
         <div className={cn("min-h-screen flex flex-col", style?.layoutMode === 'DUAL' ? 'max-w-7xl mx-auto' : '')}>
@@ -57,6 +71,33 @@ export const PublicLayout = () => {
             </main>
 
             <footer className="w-full border-t border-gray-200 dark:border-gray-800 py-8 text-center text-sm text-gray-500 dark:text-gray-400">
+                {friendLinks.length > 0 && (
+                    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mb-6">
+                        <div className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-3">友情链接</div>
+                        <div className="flex flex-wrap items-center justify-center gap-x-6 gap-y-3">
+                            {friendLinks.map((link) => (
+                                <a
+                                    key={link.id}
+                                    href={link.url}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="inline-flex items-center gap-2 text-gray-600 dark:text-gray-300 hover:text-primary transition-colors"
+                                    title={link.name}
+                                >
+                                    {link.logoUrl && (
+                                        <img
+                                            src={link.logoUrl}
+                                            alt={link.name}
+                                            className="w-4 h-4 object-contain"
+                                            onError={(e) => (e.currentTarget.style.display = 'none')}
+                                        />
+                                    )}
+                                    <span>{link.name}</span>
+                                </a>
+                            ))}
+                        </div>
+                    </div>
+                )}
                 &copy; {new Date().getFullYear()} IndieSite 版权所有
             </footer>
         </div>
