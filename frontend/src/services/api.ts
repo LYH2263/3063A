@@ -126,4 +126,18 @@ export const bannerApi = {
         api.put('/banners/admin/reorder', { orders }),
 };
 
+export const userApi = {
+    getPublicProfile: (username: string) =>
+        api.get(`/users/${username}`),
+
+    updateProfile: (data: { nickname?: string; bio?: string; avatarUrl?: string; password?: string }) =>
+        api.put('/users/profile', data),
+
+    uploadAvatar: (file: File) => {
+        const formData = new FormData();
+        formData.append('file', file);
+        return api.post('/upload/avatar', formData);
+    },
+};
+
 export default api;

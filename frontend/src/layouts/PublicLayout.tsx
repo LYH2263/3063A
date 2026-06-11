@@ -38,14 +38,15 @@ export const PublicLayout = () => {
                                 <Link to="/" className="hover:text-primary transition-colors">首页</Link>
                                 <Link to="/works" className="hover:text-primary transition-colors">作品集</Link>
                                 <Link to="/collections" className="hover:text-primary transition-colors">合集</Link>
-                                {user && <Link to="/profile" className="hover:text-primary transition-colors">个人主页</Link>}
+                                {user && <Link to={`/u/${user.username}`} className="hover:text-primary transition-colors">个人主页</Link>}
                             </nav>
                         </div>
 
                         <div className="flex items-center gap-4 text-sm font-medium">
                             {user ? (
                                 <>
-                                    <span className="text-gray-500 dark:text-gray-400">你好, {user.username}</span>
+                                    <Link to={`/u/${user.username}`} className="text-gray-500 dark:text-gray-400 hover:text-primary transition-colors">你好, {user.nickname || user.username}</Link>
+                                    <Link to="/profile" className="text-gray-500 dark:text-gray-400 hover:text-primary transition-colors hidden md:inline">个人中心</Link>
                                     {isAdmin && (
                                         <Link to="/admin" className="text-primary hover:underline">管理后台</Link>
                                     )}

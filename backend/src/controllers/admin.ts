@@ -8,7 +8,7 @@ const prisma = new PrismaClient();
 // Get all users
 export const adminGetUsers = async (req: Request, res: Response) => {
     const users = await prisma.user.findMany({
-        select: { id: true, username: true, roleType: true, status: true, createdAt: true },
+        select: { id: true, username: true, nickname: true, avatarUrl: true, roleType: true, status: true, createdAt: true },
         orderBy: { createdAt: 'desc' }
     });
     return apiResponse(res, 200, 'Success', users);

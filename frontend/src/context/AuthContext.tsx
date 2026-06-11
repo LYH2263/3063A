@@ -4,7 +4,11 @@ import { isAdminRole } from '../lib/role';
 interface User {
     id: number;
     username: string;
+    nickname?: string;
+    avatarUrl?: string;
+    bio?: string;
     roleType: 'SUPER_ADMIN' | 'ADMIN' | 'USER';
+    createdAt?: string;
 }
 
 interface AuthContextType {
@@ -12,6 +16,7 @@ interface AuthContextType {
     token: string | null;
     login: (token: string, user: User) => void;
     logout: () => void;
+    updateUser: (user: Partial<User>) => void;
     isAdmin: boolean;
 }
 
@@ -20,6 +25,7 @@ const AuthContext = createContext<AuthContextType>({
     token: null,
     login: () => { },
     logout: () => { },
+    updateUser: () => { },
     isAdmin: false,
 });
 
@@ -55,8 +61,17 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         setUser(null);
     };
 
+    const updateUser = (updates: Partial<User>) => {
+        setUser(prev => {
+            if (!prev) return prev;
+            const updated = { ...prev, ...updates };
+            localStorage.setItem('user', JSON.stringify(updated));
+            return updated;
+        });
+    };
+
     return (
-        <AuthContext.Provider value={{ user, token, login, logout, isAdmin: isAdminRole(user?.roleType) }}>
+        <AuthContext.Provider value={{ user, token, login, logout, updateUser, isAdmin: isAdminRole(user?.roleType) }}>
             {children}
         </AuthContext.Provider>
     );

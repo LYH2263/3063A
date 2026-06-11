@@ -46,6 +46,9 @@ model User {
   id            Int             @id @default(autoincrement())
   username      String          @unique
   passwordHash  String
+  nickname      String?
+  avatarUrl     String?
+  bio           String?         @db.Text
   roleType      RoleType        @default(USER)
   permissions   String?         // Allowed string like "STYLE,WORK,USER,MESSAGE,SETTING"
   status        Status          @default(ACTIVE)

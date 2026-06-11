@@ -27,4 +27,12 @@ router.post('/', authenticate, requireAdmin, upload.single('file'), (req: Reques
     return apiResponse(res, 200, 'File uploaded', { url: fileUrl });
 });
 
+router.post('/avatar', authenticate, upload.single('file'), (req: Request, res: Response) => {
+    if (!req.file) {
+        return apiResponse(res, 400, 'No file uploaded');
+    }
+    const fileUrl = `/uploads/${req.file.filename}`;
+    return apiResponse(res, 200, 'Avatar uploaded', { url: fileUrl });
+});
+
 export default router;

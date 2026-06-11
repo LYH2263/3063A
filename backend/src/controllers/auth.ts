@@ -3,7 +3,6 @@ import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import { PrismaClient } from '@prisma/client';
 import { apiResponse } from '../middleware/error';
-import { AuthRequest } from '../middleware/auth';
 
 const prisma = new PrismaClient();
 const JWT_SECRET = process.env.JWT_SECRET || 'supersecretjwtkey_12345';
@@ -41,7 +40,11 @@ export const login = async (req: Request, res: Response) => {
         user: {
             id: user.id,
             username: user.username,
-            roleType: user.roleType
+            nickname: user.nickname,
+            avatarUrl: user.avatarUrl,
+            bio: user.bio,
+            roleType: user.roleType,
+            createdAt: user.createdAt,
         }
     });
 };
@@ -68,21 +71,4 @@ export const register = async (req: Request, res: Response) => {
     });
 
     return apiResponse(res, 201, 'Registration successful');
-};
-
-export const updateProfile = async (req: AuthRequest, res: Response) => {
-    const userId = req.user!.userId;
-    const { password } = req.body;
-
-    if (!password) {
-        return apiResponse(res, 400, '密码不能为空 (Password is required)');
-    }
-
-    const passwordHash = await bcrypt.hash(password, 10);
-    await prisma.user.update({
-        where: { id: userId },
-        data: { passwordHash }
-    });
-
-    return apiResponse(res, 200, '资料修改成功 (Profile updated successfully)');
 };

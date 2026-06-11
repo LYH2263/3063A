@@ -18,3 +18,4 @@ export { Login } from './public/Login';
 export { Register } from './public/Register';
 export { Profile } from './public/Profile';
 export { WorkDetail } from './public/WorkDetail';
+export { UserPublicProfile } from './public/UserPublicProfile';
