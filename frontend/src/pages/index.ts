@@ -1,6 +1,7 @@
 export { AdminDashboard } from './admin/Dashboard';
 export { AdminStyles } from './admin/Styles';
 export { AdminWorks } from './admin/Works';
+export { AdminReviewQueue } from './admin/ReviewQueue';
 export { AdminUsers } from './admin/Users';
 export { AdminMessages } from './admin/Messages';
 export { AdminComments } from './admin/Comments';

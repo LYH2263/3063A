@@ -1,7 +1,7 @@
 import React from 'react';
 import { Link, Outlet, useLocation, Navigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { LayoutDashboard, Users, Image as ImageIcon, Palette, MessageSquare, MessagesSquare, LogOut, Settings, Activity, FolderOpen, Link as LinkIcon, PanelTop } from 'lucide-react';
+import { LayoutDashboard, Users, Image as ImageIcon, Palette, MessageSquare, MessagesSquare, LogOut, Settings, Activity, FolderOpen, Link as LinkIcon, PanelTop, FileCheck } from 'lucide-react';
 
 export default function AdminLayout() {
     const { user, isAdmin, logout } = useAuth();
@@ -18,6 +18,7 @@ export default function AdminLayout() {
     const navItems = [
         { name: '控制台', path: '/admin', icon: LayoutDashboard },
         { name: '作品管理', path: '/admin/works', icon: ImageIcon },
+        { name: '审核队列', path: '/admin/review-queue', icon: FileCheck },
         { path: '/admin/collections', name: '合集管理', icon: FolderOpen },
         { path: '/admin/friend-links', name: '友情链接', icon: LinkIcon },
         { path: '/admin/banners', name: '轮播图管理', icon: PanelTop },

@@ -140,4 +140,39 @@ export const userApi = {
     },
 };
 
+export const workApi = {
+    getWorks: (params?: { page?: number; limit?: number; category?: string; search?: string }) =>
+        api.get('/works', { params }),
+
+    getWorkDetail: (id: number) =>
+        api.get(`/works/${id}`),
+
+    toggleInteraction: (id: number, type: string) =>
+        api.post(`/works/${id}/interact`, { type }),
+
+    getMyFavorites: () =>
+        api.get('/works/user/favorites'),
+
+    adminGetAllWorks: (params?: { status?: string }) =>
+        api.get('/works/admin/all', { params }),
+
+    adminGetPendingReviews: () =>
+        api.get('/works/admin/pending-reviews'),
+
+    adminCreateWork: (data: { title: string; description: string; tags?: string; category?: string; mediaUrl: string; status?: string }) =>
+        api.post('/works/admin', data),
+
+    adminUpdateWork: (id: number, data: { title?: string; description?: string; tags?: string; category?: string; mediaUrl?: string; status?: string }) =>
+        api.put(`/works/admin/${id}`, data),
+
+    adminApproveWork: (id: number) =>
+        api.post(`/works/admin/${id}/approve`),
+
+    adminRejectWork: (id: number, reason: string) =>
+        api.post(`/works/admin/${id}/reject`, { reason }),
+
+    adminDeleteWork: (id: number) =>
+        api.delete(`/works/admin/${id}`),
+};
+
 export default api;

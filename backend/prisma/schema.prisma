@@ -21,7 +21,9 @@ enum Status {
 
 enum WorkStatus {
   DRAFT
+  PENDING_REVIEW
   PUBLISHED
+  REJECTED
 }
 
 enum MessageStatus {
@@ -43,37 +45,46 @@ enum LayoutMode {
 }
 
 model User {
-  id            Int             @id @default(autoincrement())
-  username      String          @unique
-  passwordHash  String
-  nickname      String?
-  avatarUrl     String?
-  bio           String?         @db.Text
-  roleType      RoleType        @default(USER)
-  permissions   String?         // Allowed string like "STYLE,WORK,USER,MESSAGE,SETTING"
-  status        Status          @default(ACTIVE)
-  createdAt     DateTime        @default(now())
-  updatedAt     DateTime        @updatedAt
-  interactions  Interaction[]
-  messages      Message[]
-  comments      Comment[]
-  operationLogs OperationLog[]
+  id              Int             @id @default(autoincrement())
+  username        String          @unique
+  passwordHash    String
+  nickname        String?
+  avatarUrl       String?
+  bio             String?         @db.Text
+  roleType        RoleType        @default(USER)
+  permissions     String?         // Allowed string like "STYLE,WORK,USER,MESSAGE,SETTING"
+  status          Status          @default(ACTIVE)
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+  interactions    Interaction[]
+  messages        Message[]
+  comments        Comment[]
+  operationLogs   OperationLog[]
+  submittedWorks  Work[]          @relation("WorkSubmissions")
+  reviewedWorks   Work[]          @relation("WorkReviews")
 }
 
 model Work {
-  id           Int              @id @default(autoincrement())
-  title        String
-  description  String           @db.Text
-  tags         String           // JSON array fallback
-  category     String
-  mediaUrl     String
-  status       WorkStatus       @default(PUBLISHED)
-  viewCount    Int              @default(0)
-  createdAt    DateTime         @default(now())
-  updatedAt    DateTime         @updatedAt
-  interactions Interaction[]
-  comments     Comment[]
-  collections  CollectionWork[]
+  id            Int              @id @default(autoincrement())
+  title         String
+  description   String           @db.Text
+  tags          String           // JSON array fallback
+  category      String
+  mediaUrl      String
+  status        WorkStatus       @default(PUBLISHED)
+  rejectReason  String?          @db.Text
+  submittedAt   DateTime?
+  viewCount     Int              @default(0)
+  createdAt     DateTime         @default(now())
+  updatedAt     DateTime         @updatedAt
+  submitter     User?            @relation("WorkSubmissions", fields: [submitterId], references: [id])
+  submitterId   Int?
+  reviewer      User?            @relation("WorkReviews", fields: [reviewerId], references: [id])
+  reviewerId    Int?
+  reviewedAt    DateTime?
+  interactions  Interaction[]
+  comments      Comment[]
+  collections   CollectionWork[]
 }
 
 model Collection {

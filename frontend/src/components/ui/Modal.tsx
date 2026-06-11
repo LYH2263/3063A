@@ -7,15 +7,23 @@ interface ModalProps {
     title: string;
     children: React.ReactNode;
     footer?: React.ReactNode;
+    size?: 'sm' | 'md' | 'lg' | 'xl';
 }
 
-export const Modal: React.FC<ModalProps> = ({ isOpen, onClose, title, children, footer }) => {
+export const Modal: React.FC<ModalProps> = ({ isOpen, onClose, title, children, footer, size = 'md' }) => {
     if (!isOpen) return null;
+
+    const sizeClasses = {
+        sm: 'max-w-sm',
+        md: 'max-w-lg',
+        lg: 'max-w-3xl',
+        xl: 'max-w-5xl'
+    };
 
     return (
         <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 backdrop-blur-sm transition-opacity">
             <div
-                className="bg-white dark:bg-slate-900 rounded-xl shadow-2xl w-full max-w-lg transform transition-all p-6 relative"
+                className={`bg-white dark:bg-slate-900 rounded-xl shadow-2xl w-full ${sizeClasses[size]} transform transition-all p-6 relative`}
                 onClick={e => e.stopPropagation()}
             >
                 <button

@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { getWorks, getWorkDetail, toggleInteraction, getMyFavorites, adminGetWorks, adminCreateWork, adminUpdateWork, adminDeleteWork } from '../controllers/work';
+import { getWorks, getWorkDetail, toggleInteraction, getMyFavorites, adminGetWorks, adminCreateWork, adminUpdateWork, adminDeleteWork, adminGetPendingReviews, adminApproveWork, adminRejectWork } from '../controllers/work';
 import { authenticate, requireAdmin } from '../middleware/auth';
 import { logOperation } from '../middleware/logger';
 import { asyncHandler } from '../middleware/error';
@@ -16,8 +16,11 @@ router.get('/user/favorites', authenticate, asyncHandler(getMyFavorites));
 
 // Admin
 router.get('/admin/all', authenticate, requireAdmin, asyncHandler(adminGetWorks));
+router.get('/admin/pending-reviews', authenticate, requireAdmin, asyncHandler(adminGetPendingReviews));
 router.post('/admin', authenticate, requireAdmin, logOperation('CREATE_WORK'), asyncHandler(adminCreateWork));
 router.put('/admin/:id', authenticate, requireAdmin, logOperation('UPDATE_WORK'), asyncHandler(adminUpdateWork));
+router.post('/admin/:id/approve', authenticate, requireAdmin, logOperation('APPROVE_WORK'), asyncHandler(adminApproveWork));
+router.post('/admin/:id/reject', authenticate, requireAdmin, logOperation('REJECT_WORK'), asyncHandler(adminRejectWork));
 router.delete('/admin/:id', authenticate, requireAdmin, logOperation('DELETE_WORK'), asyncHandler(adminDeleteWork));
 
 export default router;
