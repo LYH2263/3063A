@@ -22,7 +22,7 @@ export const updateSettings = async (req: Request, res: Response) => {
         settings = await prisma.systemSetting.create({ data: {} });
     }
 
-    const { siteTitle, logoUrl, contactInfo, icpInfo, enableMessageReview, enableWorkReview, enableRegistration } = req.body;
+    const { siteTitle, logoUrl, contactInfo, icpInfo, enableMessageReview, enableCommentReview, enableWorkReview, enableRegistration } = req.body;
 
     const updated = await prisma.systemSetting.update({
         where: { id: settings.id },
@@ -32,6 +32,7 @@ export const updateSettings = async (req: Request, res: Response) => {
             contactInfo: contactInfo ?? settings.contactInfo,
             icpInfo: icpInfo ?? settings.icpInfo,
             enableMessageReview: enableMessageReview ?? settings.enableMessageReview,
+            enableCommentReview: enableCommentReview ?? settings.enableCommentReview,
             enableWorkReview: enableWorkReview ?? settings.enableWorkReview,
             enableRegistration: enableRegistration ?? settings.enableRegistration
         }

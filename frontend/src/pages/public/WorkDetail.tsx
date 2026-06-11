@@ -3,7 +3,8 @@ import { useParams, useNavigate } from 'react-router-dom';
 import api from '../../services/api';
 import { useAuth } from '../../context/AuthContext';
 import { useToast } from '../../context/ToastContext';
-import { Heart, ArrowLeft, Eye, Star } from 'lucide-react';
+import { Heart, ArrowLeft, Eye, Star, MessageSquare } from 'lucide-react';
+import { CommentSection } from '../../components/comment/CommentSection';
 
 const API_ROOT = (import.meta.env.VITE_API_URL || 'http://localhost:8063/api').replace(/\/api$/, '');
 
@@ -12,13 +13,17 @@ export const WorkDetail = () => {
     const navigate = useNavigate();
     const [work, setWork] = useState<any>(null);
     const [loading, setLoading] = useState(true);
+    const [commentTotal, setCommentTotal] = useState(0);
     const { user } = useAuth();
     const { toast } = useToast();
+
+    const workId = parseInt(id as string);
 
     const fetchWork = async () => {
         try {
             const res: any = await api.get(`/works/${id}`);
             setWork(res.data);
+            setCommentTotal(res.data?.commentCount || 0);
         } catch (err: any) {
             toast('获取作品详情失败', 'error');
             navigate('/works');
@@ -95,9 +100,10 @@ export const WorkDetail = () => {
                         </div>
                     </div>
 
-                    <div className="flex items-center gap-4 text-sm text-gray-500 mb-8 border-b pb-6 dark:border-gray-800">
+                    <div className="flex items-center gap-4 text-sm text-gray-500 mb-8 border-b pb-6 dark:border-gray-800 flex-wrap">
                         <span className="px-3 py-1 bg-gray-100 dark:bg-slate-800 rounded-full">{work.category}</span>
                         <span className="flex items-center gap-1"><Eye className="w-4 h-4" /> {work.viewCount} 浏览</span>
+                        <span className="flex items-center gap-1"><MessageSquare className="w-4 h-4" /> {commentTotal} 评论</span>
                         <span>发布于: {new Date(work.createdAt).toLocaleDateString()}</span>
                     </div>
 
@@ -122,6 +128,14 @@ export const WorkDetail = () => {
                     )}
                 </div>
             </div>
+
+            {!isNaN(workId) && (
+                <CommentSection
+                    workId={workId}
+                    initialTotal={commentTotal}
+                    onTotalChange={setCommentTotal}
+                />
+            )}
         </div>
     );
 };

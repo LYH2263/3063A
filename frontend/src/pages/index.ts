@@ -3,6 +3,7 @@ export { AdminStyles } from './admin/Styles';
 export { AdminWorks } from './admin/Works';
 export { AdminUsers } from './admin/Users';
 export { AdminMessages } from './admin/Messages';
+export { AdminComments } from './admin/Comments';
 export { AdminSettings } from './admin/Settings';
 export { AdminOperationLogs } from './admin/OperationLogs';
 

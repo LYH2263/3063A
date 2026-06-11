@@ -11,6 +11,7 @@ export const AdminSettings = () => {
         contactInfo: '',
         icpInfo: '',
         enableMessageReview: true,
+        enableCommentReview: true,
         enableWorkReview: false,
         enableRegistration: true
     });
@@ -110,6 +111,17 @@ export const AdminSettings = () => {
                                 className="w-5 h-5 text-primary border-gray-300 rounded focus:ring-primary"
                             />
                             <span className="text-gray-700">开启留言板人工审核 (开启后留言需通过审批才能显示)</span>
+                        </label>
+
+                        <label className="flex items-center gap-3 cursor-pointer">
+                            <input
+                                type="checkbox"
+                                name="enableCommentReview"
+                                checked={settings.enableCommentReview}
+                                onChange={handleChange}
+                                className="w-5 h-5 text-primary border-gray-300 rounded focus:ring-primary"
+                            />
+                            <span className="text-gray-700">开启作品评论人工审核 (开启后新评论需通过审批才能公开展示)</span>
                         </label>
 
                         <label className="flex items-center gap-3 cursor-pointer">

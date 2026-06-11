@@ -45,7 +45,23 @@ export const getWorks = async (req: Request, res: Response) => {
         })
     ]);
 
-    return apiResponse(res, 200, 'Success', { total, page, limit, works });
+    const workIds = works.map(w => w.id);
+    let commentCounts: Record<number, number> = {};
+    if (workIds.length > 0) {
+        const raw = await prisma.comment.groupBy({
+            by: ['workId'],
+            where: { workId: { in: workIds }, status: 'APPROVED' },
+            _count: { workId: true },
+        });
+        raw.forEach(r => { commentCounts[r.workId] = r._count.workId; });
+    }
+
+    const worksWithCounts = works.map(w => ({
+        ...w,
+        commentCount: commentCounts[w.id] || 0,
+    }));
+
+    return apiResponse(res, 200, 'Success', { total, page, limit, works: worksWithCounts });
 };
 
 // Public: Get work details
@@ -53,15 +69,20 @@ export const getWorkDetail = async (req: Request, res: Response) => {
     const id = parseInt(req.params.id);
     if (isNaN(id)) return apiResponse(res, 400, 'Invalid ID');
 
-    const work = await prisma.work.update({
-        where: { id, status: 'PUBLISHED' },
-        data: { viewCount: { increment: 1 } },
-        include: { interactions: true }
-    });
+    const [work, commentCount] = await Promise.all([
+        prisma.work.update({
+            where: { id, status: 'PUBLISHED' },
+            data: { viewCount: { increment: 1 } },
+            include: { interactions: true }
+        }),
+        prisma.comment.count({
+            where: { workId: id, status: 'APPROVED' },
+        }),
+    ]);
 
     if (!work) return apiResponse(res, 404, 'Work not found');
 
-    return apiResponse(res, 200, 'Success', work);
+    return apiResponse(res, 200, 'Success', { ...work, commentCount });
 };
 
 // User: Interact (Like / Favorite)

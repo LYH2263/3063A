@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import api from '../../services/api';
 import { useAuth } from '../../context/AuthContext';
 import { useToast } from '../../context/ToastContext';
-import { Heart, Search } from 'lucide-react';
+import { Heart, Search, MessageSquare } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 const API_ROOT = (import.meta.env.VITE_API_URL || 'http://localhost:8063/api').replace(/\/api$/, '');
@@ -106,7 +106,10 @@ export const Works = () => {
                                 </div>
                                 <p className="text-gray-500 text-sm mb-4 line-clamp-2">{w.description}</p>
                                 <div className="flex items-center justify-between mt-4 text-xs font-medium text-gray-400">
-                                    <span>{w.viewCount} 次浏览</span>
+                                    <div className="flex items-center gap-3">
+                                        <span className="flex items-center gap-1"><MessageSquare className="w-3.5 h-3.5" /> {w.commentCount || 0}</span>
+                                        <span>{w.viewCount} 次浏览</span>
+                                    </div>
                                     <span className="px-2 py-1 bg-gray-100 rounded dark:bg-gray-800">{w.category}</span>
                                 </div>
                             </div>
