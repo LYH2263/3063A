@@ -44,7 +44,7 @@ export const getWorks = async (req: Request, res: Response) => {
     const category = req.query.category as string;
     const search = req.query.search as string;
 
-    const whereCondition: any = { status: WorkStatus.PUBLISHED };
+    const whereCondition: any = { status: WorkStatus.PUBLISHED, isDeleted: false };
     if (category) whereCondition.category = category;
     if (search) {
         whereCondition.OR = [
@@ -86,9 +86,14 @@ export const getWorkDetail = async (req: Request, res: Response) => {
     const id = parseInt(req.params.id);
     if (isNaN(id)) return apiResponse(res, 400, 'Invalid ID');
 
+    const existing = await prisma.work.findUnique({ where: { id } });
+    if (!existing || existing.isDeleted || existing.status !== WorkStatus.PUBLISHED) {
+        return apiResponse(res, 404, 'Work not found');
+    }
+
     const [work, commentCount] = await Promise.all([
         prisma.work.update({
-            where: { id, status: WorkStatus.PUBLISHED },
+            where: { id },
             data: { viewCount: { increment: 1 } },
             include: { interactions: true }
         }),
@@ -96,8 +101,6 @@ export const getWorkDetail = async (req: Request, res: Response) => {
             where: { workId: id, status: 'APPROVED' },
         }),
     ]);
-
-    if (!work) return apiResponse(res, 404, 'Work not found');
 
     return apiResponse(res, 200, 'Success', { ...work, commentCount });
 };
@@ -109,7 +112,7 @@ export const toggleInteraction = async (req: AuthRequest, res: Response) => {
     if (!['LIKE', 'FAVORITE'].includes(type)) return apiResponse(res, 400, 'Invalid interaction type');
 
     const work = await prisma.work.findUnique({ where: { id } });
-    if (!work || work.status !== WorkStatus.PUBLISHED) {
+    if (!work || work.isDeleted || work.status !== WorkStatus.PUBLISHED) {
         return apiResponse(res, 404, 'Work not found or not published');
     }
 
@@ -138,13 +141,13 @@ export const getMyFavorites = async (req: AuthRequest, res: Response) => {
     });
     const works = interactions
         .map(i => i.work)
-        .filter(w => w && w.status === WorkStatus.PUBLISHED);
+        .filter(w => w && !w.isDeleted && w.status === WorkStatus.PUBLISHED);
     return apiResponse(res, 200, 'Success', works);
 };
 
 export const adminGetWorks = async (req: Request, res: Response) => {
     const status = req.query.status as string;
-    const whereCondition: any = {};
+    const whereCondition: any = { isDeleted: false };
     if (status && VALID_WORK_STATUSES.includes(status)) {
         whereCondition.status = status;
     }
@@ -162,7 +165,7 @@ export const adminGetWorks = async (req: Request, res: Response) => {
 
 export const adminGetPendingReviews = async (req: Request, res: Response) => {
     const works = await prisma.work.findMany({
-        where: { status: WorkStatus.PENDING_REVIEW },
+        where: { status: WorkStatus.PENDING_REVIEW, isDeleted: false },
         include: {
             submitter: { select: { id: true, username: true, nickname: true } }
         },
@@ -177,6 +180,7 @@ export const adminApproveWork = async (req: AuthRequest, res: Response) => {
 
     const work = await prisma.work.findUnique({ where: { id } });
     if (!work) return apiResponse(res, 404, 'Work not found');
+    if (work.isDeleted) return apiResponse(res, 400, 'Cannot approve a deleted work');
 
     if (!isValidStatusTransition(work.status, WorkStatus.PUBLISHED)) {
         return apiResponse(res, 400, `Invalid status transition from ${work.status} to PUBLISHED`);
@@ -209,6 +213,7 @@ export const adminRejectWork = async (req: AuthRequest, res: Response) => {
 
     const work = await prisma.work.findUnique({ where: { id } });
     if (!work) return apiResponse(res, 404, 'Work not found');
+    if (work.isDeleted) return apiResponse(res, 400, 'Cannot reject a deleted work');
 
     if (!isValidStatusTransition(work.status, WorkStatus.REJECTED)) {
         return apiResponse(res, 400, `Invalid status transition from ${work.status} to REJECTED`);
@@ -299,6 +304,7 @@ export const adminUpdateWork = async (req: AuthRequest, res: Response) => {
 
     const existingWork = await prisma.work.findUnique({ where: { id } });
     if (!existingWork) return apiResponse(res, 404, 'Work not found');
+    if (existingWork.isDeleted) return apiResponse(res, 400, 'Cannot update a deleted work');
 
     const userRole = req.user!.roleType;
     const isAdmin = isAdminRole(userRole);
@@ -358,11 +364,157 @@ export const adminUpdateWork = async (req: AuthRequest, res: Response) => {
     return apiResponse(res, 200, 'Work updated', work);
 };
 
-export const adminDeleteWork = async (req: Request, res: Response) => {
+export const adminDeleteWork = async (req: AuthRequest, res: Response) => {
     const id = parseInt(req.params.id);
+    if (isNaN(id)) return apiResponse(res, 400, 'Invalid ID');
 
-    await prisma.interaction.deleteMany({ where: { workId: id } });
+    const work = await prisma.work.findUnique({ where: { id } });
+    if (!work) return apiResponse(res, 404, 'Work not found');
+    if (work.isDeleted) return apiResponse(res, 400, 'Work is already in recycle bin');
 
-    await prisma.work.delete({ where: { id } });
-    return apiResponse(res, 200, 'Work deleted');
+    const deletedBy = req.user!.userId;
+
+    await prisma.work.update({
+        where: { id },
+        data: {
+            isDeleted: true,
+            deletedAt: new Date(),
+            deletedBy,
+            statusBeforeDelete: work.status,
+            status: WorkStatus.DRAFT
+        }
+    });
+
+    return apiResponse(res, 200, 'Work moved to recycle bin');
+};
+
+export const adminGetRecycleBin = async (req: Request, res: Response) => {
+    const page = parseInt(req.query.page as string) || 1;
+    const limit = parseInt(req.query.limit as string) || 10;
+
+    const whereCondition: any = { isDeleted: true };
+
+    const [total, works] = await Promise.all([
+        prisma.work.count({ where: whereCondition }),
+        prisma.work.findMany({
+            where: whereCondition,
+            skip: (page - 1) * limit,
+            take: limit,
+            orderBy: { deletedAt: 'desc' },
+            include: {
+                submitter: { select: { id: true, username: true, nickname: true } },
+                deleter: { select: { id: true, username: true, nickname: true } }
+            }
+        })
+    ]);
+
+    const settings = await prisma.systemSetting.findFirst();
+    const retentionDays = settings?.recycleBinRetentionDays ?? 30;
+
+    return apiResponse(res, 200, 'Success', { total, page, limit, works, retentionDays });
+};
+
+export const adminRestoreWork = async (req: AuthRequest, res: Response) => {
+    const id = parseInt(req.params.id);
+    if (isNaN(id)) return apiResponse(res, 400, 'Invalid ID');
+
+    const work = await prisma.work.findUnique({ where: { id } });
+    if (!work) return apiResponse(res, 404, 'Work not found');
+    if (!work.isDeleted) return apiResponse(res, 400, 'Work is not in recycle bin');
+
+    const restoredStatus = work.statusBeforeDelete || WorkStatus.DRAFT;
+
+    const updated = await prisma.work.update({
+        where: { id },
+        data: {
+            isDeleted: false,
+            deletedAt: null,
+            deletedBy: null,
+            statusBeforeDelete: null,
+            status: restoredStatus
+        },
+        include: {
+            submitter: { select: { id: true, username: true, nickname: true } },
+            reviewer: { select: { id: true, username: true, nickname: true } }
+        }
+    });
+
+    return apiResponse(res, 200, 'Work restored', updated);
+};
+
+export const adminPermanentDeleteWork = async (req: AuthRequest, res: Response) => {
+    const id = parseInt(req.params.id);
+    if (isNaN(id)) return apiResponse(res, 400, 'Invalid ID');
+
+    const work = await prisma.work.findUnique({ where: { id } });
+    if (!work) return apiResponse(res, 404, 'Work not found');
+    if (!work.isDeleted) return apiResponse(res, 400, 'Work is not in recycle bin. Soft-delete it first.');
+
+    await prisma.$transaction(async (tx) => {
+        await tx.interaction.deleteMany({ where: { workId: id } });
+        await tx.comment.deleteMany({ where: { workId: id } });
+        await tx.collectionWork.deleteMany({ where: { workId: id } });
+        await tx.work.delete({ where: { id } });
+    });
+
+    return apiResponse(res, 200, 'Work permanently deleted');
+};
+
+export const adminBatchRestoreWorks = async (req: AuthRequest, res: Response) => {
+    const { ids } = req.body;
+    if (!Array.isArray(ids) || ids.length === 0) {
+        return apiResponse(res, 400, 'ids must be a non-empty array');
+    }
+
+    const works = await prisma.work.findMany({
+        where: { id: { in: ids }, isDeleted: true }
+    });
+
+    if (works.length === 0) {
+        return apiResponse(res, 404, 'No deleted works found for the given ids');
+    }
+
+    const restorePromises = works.map(work => {
+        const restoredStatus = work.statusBeforeDelete || WorkStatus.DRAFT;
+        return prisma.work.update({
+            where: { id: work.id },
+            data: {
+                isDeleted: false,
+                deletedAt: null,
+                deletedBy: null,
+                statusBeforeDelete: null,
+                status: restoredStatus
+            }
+        });
+    });
+
+    await prisma.$transaction(restorePromises);
+
+    return apiResponse(res, 200, `${works.length} work(s) restored`);
+};
+
+export const adminBatchPermanentDeleteWorks = async (req: AuthRequest, res: Response) => {
+    const { ids } = req.body;
+    if (!Array.isArray(ids) || ids.length === 0) {
+        return apiResponse(res, 400, 'ids must be a non-empty array');
+    }
+
+    const works = await prisma.work.findMany({
+        where: { id: { in: ids }, isDeleted: true }
+    });
+
+    if (works.length === 0) {
+        return apiResponse(res, 404, 'No deleted works found for the given ids');
+    }
+
+    const workIds = works.map(w => w.id);
+
+    await prisma.$transaction(async (tx) => {
+        await tx.interaction.deleteMany({ where: { workId: { in: workIds } } });
+        await tx.comment.deleteMany({ where: { workId: { in: workIds } } });
+        await tx.collectionWork.deleteMany({ where: { workId: { in: workIds } } });
+        await tx.work.deleteMany({ where: { id: { in: workIds } } });
+    });
+
+    return apiResponse(res, 200, `${workIds.length} work(s) permanently deleted`);
 };

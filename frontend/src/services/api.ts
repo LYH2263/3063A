@@ -173,6 +173,21 @@ export const workApi = {
 
     adminDeleteWork: (id: number) =>
         api.delete(`/works/admin/${id}`),
+
+    adminGetRecycleBin: (params?: { page?: number; limit?: number }) =>
+        api.get('/works/admin/recycle-bin', { params }),
+
+    adminRestoreWork: (id: number) =>
+        api.post(`/works/admin/recycle-bin/${id}/restore`),
+
+    adminPermanentDeleteWork: (id: number) =>
+        api.delete(`/works/admin/recycle-bin/${id}`),
+
+    adminBatchRestoreWorks: (ids: number[]) =>
+        api.post('/works/admin/recycle-bin/batch-restore', { ids }),
+
+    adminBatchPermanentDeleteWorks: (ids: number[]) =>
+        api.post('/works/admin/recycle-bin/batch-permanent-delete', { ids }),
 };
 
 export default api;

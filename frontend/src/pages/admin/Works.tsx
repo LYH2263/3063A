@@ -113,7 +113,7 @@ export const AdminWorks = () => {
         if (!workToDelete) return;
         try {
             await workApi.adminDeleteWork(workToDelete);
-            success('作品删除成功');
+            success('作品已移入回收站');
             setDeleteConfirmOpen(false);
             setSelectedIds(selectedIds.filter(id => id !== workToDelete));
             fetchWorks();
@@ -144,7 +144,7 @@ export const AdminWorks = () => {
         if (!window.confirm(`确定要删除选中的 ${selectedIds.length} 个作品吗？`)) return;
         try {
             await Promise.all(selectedIds.map(id => workApi.adminDeleteWork(id)));
-            success('批量删除成功');
+            success('批量移入回收站成功');
             setSelectedIds([]);
             fetchWorks();
         } catch (err: any) {
@@ -295,8 +295,8 @@ export const AdminWorks = () => {
                 </div>
             </Modal>
 
-            <Modal isOpen={deleteConfirmOpen} onClose={() => setDeleteConfirmOpen(false)} title="确认删除" footer={<><Button variant="ghost" onClick={() => setDeleteConfirmOpen(false)}>取消</Button><Button variant="danger" onClick={handleDelete}>确认删除</Button></>}>
-                <p>您确定要删除此作品吗？包含的点赞与收藏互动数据也会被删除。</p>
+            <Modal isOpen={deleteConfirmOpen} onClose={() => setDeleteConfirmOpen(false)} title="确认删除" footer={<><Button variant="ghost" onClick={() => setDeleteConfirmOpen(false)}>取消</Button><Button variant="danger" onClick={handleDelete}>移入回收站</Button></>}>
+                <p>您确定要删除此作品吗？作品将移入回收站，您可以在回收站中恢复或彻底删除。</p>
             </Modal>
         </div>
     );
