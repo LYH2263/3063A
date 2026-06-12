@@ -176,10 +176,10 @@ export const workApi = {
     adminGetPendingReviews: () =>
         api.get('/works/admin/pending-reviews'),
 
-    adminCreateWork: (data: { title: string; description: string; tags?: string; category?: string; mediaUrl: string; status?: string }) =>
+    adminCreateWork: (data: { title: string; description: string; tags?: string; category?: string; mediaUrl: string; status?: string; scheduledPublishAt?: string }) =>
         api.post('/works/admin', data),
 
-    adminUpdateWork: (id: number, data: { title?: string; description?: string; tags?: string; category?: string; mediaUrl?: string; status?: string }) =>
+    adminUpdateWork: (id: number, data: { title?: string; description?: string; tags?: string; category?: string; mediaUrl?: string; status?: string; scheduledPublishAt?: string }) =>
         api.put(`/works/admin/${id}`, data),
 
     adminApproveWork: (id: number) =>

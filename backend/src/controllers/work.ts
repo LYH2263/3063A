@@ -6,13 +6,14 @@ import { isAdminRole } from '../utils/role';
 
 const prisma = new PrismaClient();
 
-const VALID_WORK_STATUSES = ['DRAFT', 'PENDING_REVIEW', 'PUBLISHED', 'REJECTED'];
+const VALID_WORK_STATUSES = ['DRAFT', 'PENDING_REVIEW', 'PUBLISHED', 'REJECTED', 'SCHEDULED'];
 
 const STATE_TRANSITIONS: Record<WorkStatus, WorkStatus[]> = {
-    DRAFT: [WorkStatus.PENDING_REVIEW, WorkStatus.PUBLISHED],
-    PENDING_REVIEW: [WorkStatus.PUBLISHED, WorkStatus.REJECTED, WorkStatus.DRAFT],
-    PUBLISHED: [WorkStatus.DRAFT],
-    REJECTED: [WorkStatus.DRAFT, WorkStatus.PENDING_REVIEW]
+    DRAFT: [WorkStatus.PENDING_REVIEW, WorkStatus.PUBLISHED, WorkStatus.SCHEDULED],
+    PENDING_REVIEW: [WorkStatus.PUBLISHED, WorkStatus.REJECTED, WorkStatus.DRAFT, WorkStatus.SCHEDULED],
+    PUBLISHED: [WorkStatus.DRAFT, WorkStatus.SCHEDULED],
+    REJECTED: [WorkStatus.DRAFT, WorkStatus.PENDING_REVIEW, WorkStatus.SCHEDULED],
+    SCHEDULED: [WorkStatus.DRAFT, WorkStatus.PUBLISHED]
 };
 
 const isValidStatusTransition = (from: WorkStatus, to: WorkStatus): boolean => {
@@ -34,8 +35,15 @@ const normalizeWorkPayload = (body: any) => {
     const status = typeof body?.status === 'string' && VALID_WORK_STATUSES.includes(body.status)
         ? body.status as WorkStatus
         : undefined;
+    let scheduledPublishAt: Date | undefined;
+    if (body?.scheduledPublishAt) {
+        const parsed = new Date(body.scheduledPublishAt);
+        if (!isNaN(parsed.getTime())) {
+            scheduledPublishAt = parsed;
+        }
+    }
 
-    return { title, description, mediaUrl, category, tags, status };
+    return { title, description, mediaUrl, category, tags, status, scheduledPublishAt };
 };
 
 export const getWorks = async (req: Request, res: Response) => {
@@ -248,7 +256,7 @@ const determineInitialStatus = async (userRole: string): Promise<WorkStatus> => 
 };
 
 export const adminCreateWork = async (req: AuthRequest, res: Response) => {
-    const { title, description, tags, category, mediaUrl, status } = normalizeWorkPayload(req.body);
+    const { title, description, tags, category, mediaUrl, status, scheduledPublishAt } = normalizeWorkPayload(req.body);
     const missingFields = [
         !title ? 'title' : null,
         !description ? 'description' : null,
@@ -258,6 +266,15 @@ export const adminCreateWork = async (req: AuthRequest, res: Response) => {
         return apiResponse(res, 400, `Missing required fields: ${missingFields.join(', ')}`);
     }
 
+    if (status === WorkStatus.SCHEDULED) {
+        if (!scheduledPublishAt) {
+            return apiResponse(res, 400, 'Scheduled publish time is required when status is SCHEDULED');
+        }
+        if (scheduledPublishAt <= new Date()) {
+            return apiResponse(res, 400, 'Scheduled publish time must be in the future');
+        }
+    }
+
     const userRole = req.user!.roleType;
     const isAdmin = isAdminRole(userRole);
     const enableWorkReview = await getEnableWorkReview();
@@ -265,6 +282,8 @@ export const adminCreateWork = async (req: AuthRequest, res: Response) => {
     let finalStatus: WorkStatus;
     let submittedAt: Date | undefined;
     let submitterId: number | undefined = req.user!.userId;
+    let finalScheduledPublishAt: Date | undefined;
+    let finalPublishedAt: Date | undefined;
 
     if (status) {
         if (!isAdmin && status === WorkStatus.PUBLISHED && enableWorkReview) {
@@ -279,6 +298,14 @@ export const adminCreateWork = async (req: AuthRequest, res: Response) => {
         submittedAt = new Date();
     }
 
+    if (finalStatus === WorkStatus.SCHEDULED && scheduledPublishAt) {
+        finalScheduledPublishAt = scheduledPublishAt;
+    }
+
+    if (finalStatus === WorkStatus.PUBLISHED) {
+        finalPublishedAt = new Date();
+    }
+
     const work = await prisma.work.create({
         data: {
             title,
@@ -288,7 +315,9 @@ export const adminCreateWork = async (req: AuthRequest, res: Response) => {
             mediaUrl,
             status: finalStatus,
             submittedAt,
-            submitterId
+            submitterId,
+            scheduledPublishAt: finalScheduledPublishAt,
+            publishedAt: finalPublishedAt
         }
     });
     return apiResponse(res, 201, 'Work created', work);
@@ -296,7 +325,7 @@ export const adminCreateWork = async (req: AuthRequest, res: Response) => {
 
 export const adminUpdateWork = async (req: AuthRequest, res: Response) => {
     const id = parseInt(req.params.id);
-    const { title, description, tags, category, mediaUrl, status } = normalizeWorkPayload(req.body);
+    const { title, description, tags, category, mediaUrl, status, scheduledPublishAt } = normalizeWorkPayload(req.body);
     if (isNaN(id)) return apiResponse(res, 400, 'Invalid ID');
     if (title !== undefined && !title) return apiResponse(res, 400, 'title cannot be empty');
     if (description !== undefined && !description) return apiResponse(res, 400, 'description cannot be empty');
@@ -305,6 +334,17 @@ export const adminUpdateWork = async (req: AuthRequest, res: Response) => {
     const existingWork = await prisma.work.findUnique({ where: { id } });
     if (!existingWork) return apiResponse(res, 404, 'Work not found');
     if (existingWork.isDeleted) return apiResponse(res, 400, 'Cannot update a deleted work');
+
+    const effectiveStatus = status ?? existingWork.status;
+    if (effectiveStatus === WorkStatus.SCHEDULED) {
+        const effectiveScheduledAt = scheduledPublishAt ?? existingWork.scheduledPublishAt;
+        if (!effectiveScheduledAt) {
+            return apiResponse(res, 400, 'Scheduled publish time is required when status is SCHEDULED');
+        }
+        if (effectiveScheduledAt <= new Date()) {
+            return apiResponse(res, 400, 'Scheduled publish time must be in the future');
+        }
+    }
 
     const userRole = req.user!.roleType;
     const isAdmin = isAdminRole(userRole);
@@ -338,6 +378,20 @@ export const adminUpdateWork = async (req: AuthRequest, res: Response) => {
         ...(status !== undefined ? { status: finalStatus } : {}),
         ...(submittedAt !== existingWork.submittedAt ? { submittedAt } : {})
     };
+
+    if (status === WorkStatus.SCHEDULED || (finalStatus === WorkStatus.SCHEDULED && scheduledPublishAt !== undefined)) {
+        updateData.scheduledPublishAt = scheduledPublishAt;
+        updateData.publishedAt = null;
+    }
+
+    if (status !== undefined && status !== WorkStatus.SCHEDULED) {
+        updateData.scheduledPublishAt = null;
+    }
+
+    if (status === WorkStatus.PUBLISHED) {
+        updateData.publishedAt = new Date();
+        updateData.scheduledPublishAt = null;
+    }
 
     if (status === WorkStatus.PUBLISHED || status === WorkStatus.REJECTED) {
         if (isAdmin) {

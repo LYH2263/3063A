@@ -24,6 +24,7 @@ enum WorkStatus {
   PENDING_REVIEW
   PUBLISHED
   REJECTED
+  SCHEDULED
 }
 
 enum MessageStatus {
@@ -88,9 +89,13 @@ model Work {
   deletedBy     Int?
   deleter       User?            @relation("WorkDeletions", fields: [deletedBy], references: [id])
   statusBeforeDelete WorkStatus?
+  scheduledPublishAt DateTime?
+  publishedAt   DateTime?
   interactions  Interaction[]
   comments      Comment[]
   collections   CollectionWork[]
+
+  @@index([status, scheduledPublishAt])
 
   @@index([isDeleted])
   @@index([isDeleted, deletedAt])
