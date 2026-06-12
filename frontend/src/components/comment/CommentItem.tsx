@@ -172,7 +172,7 @@ export const CommentItem: React.FC<CommentItemProps> = ({
                                     className="flex items-center gap-1 hover:text-primary transition-colors"
                                 >
                                     {childrenExpanded ? <ChevronDown className="w-3.5 h-3.5" /> : <ChevronRight className="w-3.5 h-3.5" />}
-                                    <span>{children.length} 条回复</span>
+                                    <span>{comment.children!.length} 条回复</span>
                                 </button>
                             )}
 

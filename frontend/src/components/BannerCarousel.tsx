@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useCallback, useRef } from 'react';
-import { bannerApi } from '../../services/api';
+import { bannerApi } from '../services/api';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 
 const API_ROOT = (import.meta.env.VITE_API_URL || 'http://localhost:8063/api').replace(/\/api$/, '');
