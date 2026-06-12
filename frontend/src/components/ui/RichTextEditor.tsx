@@ -65,7 +65,7 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = ({ value, onChange,
 
     const setInitialContent = useCallback((html: string) => {
         if (editor && editor.getHTML() !== html) {
-            editor.commands.setContent(html, false);
+            editor.commands.setContent(html, { emitUpdate: false });
         }
     }, [editor]);
 

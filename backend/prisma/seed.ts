@@ -11,6 +11,7 @@ async function main() {
     await prisma.collectionWork.deleteMany();
     await prisma.collection.deleteMany();
     await prisma.interaction.deleteMany();
+    await prisma.comment.deleteMany();
     await prisma.operationLog.deleteMany();
     await prisma.message.deleteMany();
     await prisma.work.deleteMany();
