@@ -1,7 +1,7 @@
 import React from 'react';
 import { Link, Outlet, useLocation, Navigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { LayoutDashboard, Users, Image as ImageIcon, Palette, MessageSquare, MessagesSquare, LogOut, Settings, Activity, FolderOpen, Link as LinkIcon, PanelTop, FileCheck, Trash2 } from 'lucide-react';
+import { LayoutDashboard, Users, Image as ImageIcon, Palette, MessageSquare, MessagesSquare, LogOut, Settings, Activity, FolderOpen, Link as LinkIcon, PanelTop, FileCheck, Trash2, Megaphone } from 'lucide-react';
 
 export default function AdminLayout() {
     const { user, isAdmin, logout } = useAuth();
@@ -23,6 +23,7 @@ export default function AdminLayout() {
         { path: '/admin/recycle-bin', name: '回收站', icon: Trash2 },
         { path: '/admin/friend-links', name: '友情链接', icon: LinkIcon },
         { path: '/admin/banners', name: '轮播图管理', icon: PanelTop },
+        { path: '/admin/announcements', name: '全站公告', icon: Megaphone },
         { path: '/admin/users', name: '用户管理', icon: Users },
         { path: '/admin/styles', name: '界面风格与主题', icon: Palette },
         { path: '/admin/messages', name: '留言审核', icon: MessageSquare },

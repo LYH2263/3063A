@@ -4,6 +4,7 @@ import { useAuth } from '../context/AuthContext';
 import { cn } from '../lib/utils';
 import { useStyle } from '../context/StyleContext';
 import { friendLinkApi } from '../services/api';
+import { AnnouncementBanner } from '../components/AnnouncementBanner';
 
 export const PublicLayout = () => {
     const { user, logout, isAdmin } = useAuth();
@@ -24,6 +25,7 @@ export const PublicLayout = () => {
 
     return (
         <div className={cn("min-h-screen flex flex-col", style?.layoutMode === 'DUAL' ? 'max-w-7xl mx-auto' : '')}>
+            <AnnouncementBanner />
             <header className="sticky top-0 z-40 w-full backdrop-blur flex-none transition-colors duration-500 lg:z-50 lg:border-b lg:border-slate-900/10 dark:border-slate-50/[0.06] bg-white/95 supports-backdrop-blur:bg-white/60 dark:bg-transparent">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                     <div className="flex h-16 items-center justify-between">

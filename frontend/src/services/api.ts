@@ -126,6 +126,23 @@ export const bannerApi = {
         api.put('/banners/admin/reorder', { orders }),
 };
 
+export const announcementApi = {
+    getActiveAnnouncement: () =>
+        api.get('/announcements/active'),
+
+    adminGetAllAnnouncements: () =>
+        api.get('/announcements/admin/all'),
+
+    adminCreateAnnouncement: (data: { title: string; content: string; contentType?: string; type?: string; startDate: string; endDate: string; isPinned?: boolean; isEnabled?: boolean }) =>
+        api.post('/announcements/admin', data),
+
+    adminUpdateAnnouncement: (id: number, data: { title?: string; content?: string; contentType?: string; type?: string; startDate?: string; endDate?: string; isPinned?: boolean; isEnabled?: boolean }) =>
+        api.put(`/announcements/admin/${id}`, data),
+
+    adminDeleteAnnouncement: (id: number) =>
+        api.delete(`/announcements/admin/${id}`),
+};
+
 export const userApi = {
     getPublicProfile: (username: string) =>
         api.get(`/users/${username}`),

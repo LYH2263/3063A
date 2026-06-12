@@ -10,6 +10,7 @@ export { AdminOperationLogs } from './admin/OperationLogs';
 export { AdminCollections } from './admin/Collections';
 export { AdminFriendLinks } from './admin/FriendLinks';
 export { AdminBanners } from './admin/Banners';
+export { AdminAnnouncements } from './admin/Announcements';
 export { AdminRecycleBin } from './admin/RecycleBin';
 
 export { Home } from './public/Home';

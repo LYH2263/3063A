@@ -208,6 +208,29 @@ model FriendLink {
   @@index([sortOrder])
 }
 
+enum AnnouncementType {
+  NOTICE
+  WARNING
+  ACTIVITY
+}
+
+model Announcement {
+  id          Int              @id @default(autoincrement())
+  title       String
+  content     String           @db.Text
+  contentType String           @default("plain")
+  type        AnnouncementType @default(NOTICE)
+  startDate   DateTime
+  endDate     DateTime
+  isPinned    Boolean          @default(false)
+  isEnabled   Boolean          @default(true)
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
+
+  @@index([isEnabled, startDate, endDate])
+  @@index([isPinned, createdAt])
+}
+
 model Banner {
   id          Int      @id @default(autoincrement())
   title       String
