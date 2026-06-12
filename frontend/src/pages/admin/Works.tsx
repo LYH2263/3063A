@@ -121,13 +121,17 @@ export const AdminWorks = () => {
     const openEditModal = (work?: any) => {
         if (work) {
             setEditingWork(work);
+            let displayStatus = work.status;
+            if (work.status === 'PENDING_REVIEW' || work.status === 'REJECTED') {
+                displayStatus = 'DRAFT';
+            }
             setFormData({
                 title: work.title || '',
                 description: work.description || '',
                 tags: work.tags || '',
                 category: work.category || '',
                 mediaUrl: work.mediaUrl || '',
-                status: work.status || 'PUBLISHED',
+                status: displayStatus,
                 scheduledPublishAt: work.scheduledPublishAt ? toLocalDateTimeInputValue(work.scheduledPublishAt) : ''
             });
         } else {
@@ -241,11 +245,7 @@ export const AdminWorks = () => {
             const updates = selectedIds.map(id => {
                 const work = works.find(w => w.id === id);
                 if (!work) return Promise.resolve();
-                const updatePayload: any = { ...work, status };
-                if (status !== 'SCHEDULED') {
-                    updatePayload.scheduledPublishAt = undefined;
-                }
-                return workApi.adminUpdateWork(id, updatePayload);
+                return workApi.adminUpdateWork(id, { status });
             });
             await Promise.all(updates);
             success(`${confirmMsg}成功`);
@@ -401,8 +401,6 @@ export const AdminWorks = () => {
                             <option value="PUBLISHED">立即发布</option>
                             <option value="DRAFT">存为草稿</option>
                             <option value="SCHEDULED">定时发布</option>
-                            <option value="PENDING_REVIEW">待审核</option>
-                            <option value="REJECTED">已驳回</option>
                         </select>
                     </div>
 

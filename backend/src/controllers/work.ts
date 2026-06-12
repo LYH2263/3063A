@@ -7,6 +7,8 @@ import { isAdminRole } from '../utils/role';
 const prisma = new PrismaClient();
 
 const VALID_WORK_STATUSES = ['DRAFT', 'PENDING_REVIEW', 'PUBLISHED', 'REJECTED', 'SCHEDULED'];
+const ALLOWED_EDIT_STATUSES: WorkStatus[] = [WorkStatus.DRAFT, WorkStatus.PUBLISHED, WorkStatus.SCHEDULED];
+const REVIEW_STATUSES: WorkStatus[] = [WorkStatus.PENDING_REVIEW, WorkStatus.REJECTED];
 
 const STATE_TRANSITIONS: Record<WorkStatus, WorkStatus[]> = {
     DRAFT: [WorkStatus.PENDING_REVIEW, WorkStatus.PUBLISHED, WorkStatus.SCHEDULED],
@@ -286,6 +288,9 @@ export const adminCreateWork = async (req: AuthRequest, res: Response) => {
     let finalPublishedAt: Date | undefined;
 
     if (status) {
+        if (!ALLOWED_EDIT_STATUSES.includes(status)) {
+            return apiResponse(res, 400, `Invalid status: ${status}. Only DRAFT, PUBLISHED and SCHEDULED are allowed for direct editing. Use the review queue API for approval/rejection.`);
+        }
         if (!isAdmin && status === WorkStatus.PUBLISHED && enableWorkReview) {
             return apiResponse(res, 403, 'Non-admin users cannot directly publish works when review is enabled');
         }
@@ -354,6 +359,10 @@ export const adminUpdateWork = async (req: AuthRequest, res: Response) => {
     let submittedAt: Date | undefined = existingWork.submittedAt;
 
     if (status !== undefined && status !== existingWork.status) {
+        if (!ALLOWED_EDIT_STATUSES.includes(status)) {
+            return apiResponse(res, 400, `Invalid status: ${status}. Only DRAFT, PUBLISHED and SCHEDULED are allowed for direct editing. Use the review queue API for approval/rejection.`);
+        }
+
         if (!isValidStatusTransition(existingWork.status, status)) {
             return apiResponse(res, 400, `Invalid status transition from ${existingWork.status} to ${status}`);
         }
@@ -391,16 +400,6 @@ export const adminUpdateWork = async (req: AuthRequest, res: Response) => {
     if (status === WorkStatus.PUBLISHED) {
         updateData.publishedAt = new Date();
         updateData.scheduledPublishAt = null;
-    }
-
-    if (status === WorkStatus.PUBLISHED || status === WorkStatus.REJECTED) {
-        if (isAdmin) {
-            updateData.reviewerId = req.user!.userId;
-            updateData.reviewedAt = new Date();
-            if (status === WorkStatus.PUBLISHED) {
-                updateData.rejectReason = null;
-            }
-        }
     }
 
     if (status === WorkStatus.DRAFT) {
