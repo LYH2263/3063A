@@ -18,6 +18,7 @@ import bannerRoutes from './routes/banner';
 import announcementRoutes from './routes/announcement';
 import userRoutes from './routes/user';
 import { startScheduledPublisher, stopScheduledPublisher } from './scheduler/scheduledPublisher';
+import { startRecycleBinCleaner, stopRecycleBinCleaner } from './scheduler/recycleBinCleaner';
 
 dotenv.config();
 
@@ -55,11 +56,13 @@ app.use(errorHandler as express.ErrorRequestHandler);
 const server = app.listen(port, () => {
     console.log(`Server is running on port ${port}`);
     startScheduledPublisher();
+    startRecycleBinCleaner();
 });
 
 const gracefulShutdown = (signal: string) => {
     console.log(`${signal} received, shutting down gracefully...`);
     stopScheduledPublisher();
+    stopRecycleBinCleaner();
     server.close(() => {
         console.log('Server closed');
         process.exit(0);
