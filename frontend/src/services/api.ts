@@ -173,6 +173,12 @@ export const userApi = {
 
     checkIsFollowing: (followingId: number) =>
         api.get(`/users/is-following/${followingId}`),
+
+    getUserFollowing: (userIdOrUsername: number | string, params?: { page?: number; limit?: number }) =>
+        api.get(`/users/${userIdOrUsername}/following`, { params }),
+
+    getUserFollowers: (userIdOrUsername: number | string, params?: { page?: number; limit?: number }) =>
+        api.get(`/users/${userIdOrUsername}/followers`, { params }),
 };
 
 export const workApi = {

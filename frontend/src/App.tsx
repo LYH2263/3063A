@@ -30,6 +30,8 @@ const App = () => {
                 <Route path="/profile" element={<Profile />} />
                 <Route path="/profile/following" element={<FollowingList />} />
                 <Route path="/profile/followers" element={<FollowersList />} />
+                <Route path="/u/:username/following" element={<FollowingList />} />
+                <Route path="/u/:username/followers" element={<FollowersList />} />
                 <Route path="/u/:username" element={<UserPublicProfile />} />
               </Route>
 

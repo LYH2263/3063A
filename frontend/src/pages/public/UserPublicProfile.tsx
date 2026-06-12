@@ -156,19 +156,15 @@ export const UserPublicProfile = () => {
                             加入于 {new Date(profile.createdAt).toLocaleDateString('zh-CN')}
                         </span>
                         <Link
-                            to="/profile/following"
+                            to={`/u/${profile.username}/following`}
                             className="flex items-center gap-1 text-gray-500 hover:text-primary transition-colors"
-                            onClick={(e) => { if (!isOwnProfile) e.preventDefault(); }}
-                            style={{ pointerEvents: isOwnProfile ? 'auto' : 'none', opacity: isOwnProfile ? 1 : 0.6 }}
                         >
                             <Users className="w-4 h-4" />
                             <span className="font-semibold text-gray-700 dark:text-gray-300">{followingCount}</span> 关注
                         </Link>
                         <Link
-                            to="/profile/followers"
+                            to={`/u/${profile.username}/followers`}
                             className="flex items-center gap-1 text-gray-500 hover:text-primary transition-colors"
-                            onClick={(e) => { if (!isOwnProfile) e.preventDefault(); }}
-                            style={{ pointerEvents: isOwnProfile ? 'auto' : 'none', opacity: isOwnProfile ? 1 : 0.6 }}
                         >
                             <Users className="w-4 h-4" />
                             <span className="font-semibold text-gray-700 dark:text-gray-300">{followerCount}</span> 粉丝

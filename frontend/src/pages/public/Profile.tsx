@@ -21,6 +21,8 @@ export const Profile = () => {
     const [bio, setBio] = useState(user?.bio || '');
     const [avatarUrl, setAvatarUrl] = useState(user?.avatarUrl || '');
     const [uploading, setUploading] = useState(false);
+    const [followingCount, setFollowingCount] = useState(0);
+    const [followerCount, setFollowerCount] = useState(0);
     const fileInputRef = useRef<HTMLInputElement>(null);
 
     if (!user) {
@@ -28,10 +30,18 @@ export const Profile = () => {
     }
 
     useEffect(() => {
-        api.get('/works/user/favorites')
-            .then((res: any) => setFavorites(res.data))
-            .catch(console.error);
-    }, []);
+        Promise.all([
+            api.get('/works/user/favorites')
+                .then((res: any) => setFavorites(res.data))
+                .catch(console.error),
+            userApi.getFollowCounts(user.id)
+                .then((res: any) => {
+                    setFollowingCount(res.data.followingCount);
+                    setFollowerCount(res.data.followerCount);
+                })
+                .catch(console.error),
+        ]);
+    }, [user?.id]);
 
     const handleAvatarUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
@@ -137,14 +147,14 @@ export const Profile = () => {
                             className="flex items-center gap-1 text-sm text-gray-500 hover:text-primary transition-colors"
                         >
                             <Users className="w-4 h-4" />
-                            <span className="font-semibold text-gray-700 dark:text-gray-300">关注</span>
+                            <span className="font-semibold text-gray-700 dark:text-gray-300">{followingCount}</span> 关注
                         </Link>
                         <Link
                             to="/profile/followers"
                             className="flex items-center gap-1 text-sm text-gray-500 hover:text-primary transition-colors"
                         >
                             <Users className="w-4 h-4" />
-                            <span className="font-semibold text-gray-700 dark:text-gray-300">粉丝</span>
+                            <span className="font-semibold text-gray-700 dark:text-gray-300">{followerCount}</span> 粉丝
                         </Link>
                         <Link
                             to={`/u/${user.username}`}

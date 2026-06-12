@@ -330,3 +330,183 @@ export const updateProfile = async (req: AuthRequest, res: Response) => {
 
     return apiResponse(res, 200, '资料修改成功', updatedUser);
 };
+
+export const getUserFollowing = async (req: Request, res: Response) => {
+    const { userId } = req.params;
+    const currentUserId = (req as AuthRequest).user?.userId;
+    const { page = '1', limit = '20' } = req.query;
+
+    let targetUserId: number;
+    if (/^\d+$/.test(userId)) {
+        targetUserId = parseInt(userId);
+    } else {
+        const user = await prisma.user.findUnique({
+            where: { username: userId },
+            select: { id: true }
+        });
+        if (!user) {
+            return apiResponse(res, 404, '用户不存在');
+        }
+        targetUserId = user.id;
+    }
+
+    const targetUser = await prisma.user.findUnique({
+        where: { id: targetUserId },
+        select: { id: true, username: true, nickname: true, status: true }
+    });
+
+    if (!targetUser) {
+        return apiResponse(res, 404, '用户不存在');
+    }
+
+    if (targetUser.status === 'BANNED') {
+        return apiResponse(res, 403, '该用户已被封禁，无法查看其关注列表');
+    }
+
+    const pageNum = parseInt(page as string);
+    const limitNum = parseInt(limit as string);
+    const skip = (pageNum - 1) * limitNum;
+
+    const follows = await prisma.follow.findMany({
+        where: {
+            followerId: targetUserId,
+            following: { status: 'ACTIVE' },
+        },
+        include: {
+            following: {
+                select: userSelectFields,
+            },
+        },
+        orderBy: { createdAt: 'desc' },
+        skip,
+        take: limitNum,
+    });
+
+    const total = await prisma.follow.count({
+        where: {
+            followerId: targetUserId,
+            following: { status: 'ACTIVE' },
+        },
+    });
+
+    let followingIds: Set<number> = new Set();
+    if (currentUserId) {
+        const followedUserIds = follows.map(f => f.followingId);
+        const currentUserFollowing = await prisma.follow.findMany({
+            where: {
+                followerId: currentUserId,
+                followingId: { in: followedUserIds },
+            },
+            select: { followingId: true },
+        });
+        followingIds = new Set(currentUserFollowing.map(f => f.followingId));
+    }
+
+    const followingList = follows.map(f => ({
+        ...f.following,
+        followedAt: f.createdAt,
+        isFollowing: followingIds.has(f.followingId),
+    }));
+
+    return apiResponse(res, 200, 'Success', {
+        list: followingList,
+        total,
+        page: pageNum,
+        limit: limitNum,
+        user: {
+            id: targetUser.id,
+            username: targetUser.username,
+            nickname: targetUser.nickname,
+        },
+    });
+};
+
+export const getUserFollowers = async (req: Request, res: Response) => {
+    const { userId } = req.params;
+    const currentUserId = (req as AuthRequest).user?.userId;
+    const { page = '1', limit = '20' } = req.query;
+
+    let targetUserId: number;
+    if (/^\d+$/.test(userId)) {
+        targetUserId = parseInt(userId);
+    } else {
+        const user = await prisma.user.findUnique({
+            where: { username: userId },
+            select: { id: true }
+        });
+        if (!user) {
+            return apiResponse(res, 404, '用户不存在');
+        }
+        targetUserId = user.id;
+    }
+
+    const targetUser = await prisma.user.findUnique({
+        where: { id: targetUserId },
+        select: { id: true, username: true, nickname: true, status: true }
+    });
+
+    if (!targetUser) {
+        return apiResponse(res, 404, '用户不存在');
+    }
+
+    if (targetUser.status === 'BANNED') {
+        return apiResponse(res, 403, '该用户已被封禁，无法查看其粉丝列表');
+    }
+
+    const pageNum = parseInt(page as string);
+    const limitNum = parseInt(limit as string);
+    const skip = (pageNum - 1) * limitNum;
+
+    const follows = await prisma.follow.findMany({
+        where: {
+            followingId: targetUserId,
+            follower: { status: 'ACTIVE' },
+        },
+        include: {
+            follower: {
+                select: userSelectFields,
+            },
+        },
+        orderBy: { createdAt: 'desc' },
+        skip,
+        take: limitNum,
+    });
+
+    const total = await prisma.follow.count({
+        where: {
+            followingId: targetUserId,
+            follower: { status: 'ACTIVE' },
+        },
+    });
+
+    let followingIds: Set<number> = new Set();
+    if (currentUserId) {
+        const followerUserIds = follows.map(f => f.followerId);
+        const currentUserFollowing = await prisma.follow.findMany({
+            where: {
+                followerId: currentUserId,
+                followingId: { in: followerUserIds },
+            },
+            select: { followingId: true },
+        });
+        followingIds = new Set(currentUserFollowing.map(f => f.followingId));
+    }
+
+    const followersList = follows.map(f => ({
+        ...f.follower,
+        followedAt: f.createdAt,
+        isFollowing: followingIds.has(f.followerId),
+    }));
+
+    return apiResponse(res, 200, 'Success', {
+        list: followersList,
+        total,
+        page: pageNum,
+        limit: limitNum,
+        user: {
+            id: targetUser.id,
+            username: targetUser.username,
+            nickname: targetUser.nickname,
+        },
+    });
+};
