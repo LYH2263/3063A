@@ -64,6 +64,8 @@ model User {
   submittedWorks  Work[]          @relation("WorkSubmissions")
   reviewedWorks   Work[]          @relation("WorkReviews")
   deletedWorks    Work[]          @relation("WorkDeletions")
+  following       Follow[]        @relation("Following")
+  followers       Follow[]        @relation("Followers")
 }
 
 model Work {
@@ -134,6 +136,19 @@ model Interaction {
   createdAt        DateTime @default(now())
   
   @@unique([userId, workId, interactionType])
+}
+
+model Follow {
+  id          Int      @id @default(autoincrement())
+  follower    User     @relation("Following", fields: [followerId], references: [id], onDelete: Cascade)
+  followerId  Int
+  following   User     @relation("Followers", fields: [followingId], references: [id], onDelete: Cascade)
+  followingId Int
+  createdAt   DateTime @default(now())
+
+  @@unique([followerId, followingId])
+  @@index([followerId])
+  @@index([followingId])
 }
 
 model StyleConfig {

@@ -22,3 +22,5 @@ export { Register } from './public/Register';
 export { Profile } from './public/Profile';
 export { WorkDetail } from './public/WorkDetail';
 export { UserPublicProfile } from './public/UserPublicProfile';
+export { FollowingList } from './public/FollowingList';
+export { FollowersList } from './public/FollowersList';

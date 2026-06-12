@@ -155,6 +155,24 @@ export const userApi = {
         formData.append('file', file);
         return api.post('/upload/avatar', formData);
     },
+
+    followUser: (followingId: number) =>
+        api.post(`/users/follow/${followingId}`),
+
+    unfollowUser: (followingId: number) =>
+        api.delete(`/users/follow/${followingId}`),
+
+    getFollowing: (params?: { page?: number; limit?: number }) =>
+        api.get('/users/following', { params }),
+
+    getFollowers: (params?: { page?: number; limit?: number }) =>
+        api.get('/users/followers', { params }),
+
+    getFollowCounts: (userId: number) =>
+        api.get(`/users/${userId}/follow-counts`),
+
+    checkIsFollowing: (followingId: number) =>
+        api.get(`/users/is-following/${followingId}`),
 };
 
 export const workApi = {

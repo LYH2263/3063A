@@ -5,7 +5,7 @@ import { Button } from '../../components/ui/Button';
 import { Input } from '../../components/ui/Input';
 import { userApi } from '../../services/api';
 import api from '../../services/api';
-import { Heart, MessageSquare, User, Camera, Link as LinkIcon } from 'lucide-react';
+import { Heart, MessageSquare, User, Camera, Link as LinkIcon, Users } from 'lucide-react';
 import { Navigate, Link } from 'react-router-dom';
 
 const API_ROOT = (import.meta.env.VITE_API_URL || 'http://localhost:8063/api').replace(/\/api$/, '');
@@ -99,7 +99,7 @@ export const Profile = () => {
     return (
         <div className="max-w-4xl mx-auto py-10 space-y-8">
 
-            <div className="bg-white dark:bg-slate-900 p-8 rounded-2xl shadow-sm border border-gray-100 flex items-center gap-6">
+            <div className="bg-white dark:bg-slate-900 p-8 rounded-2xl shadow-sm border border-gray-100 flex flex-col sm:flex-row items-start sm:items-center gap-6">
                 <div className="relative group">
                     {avatarUrl ? (
                         <img
@@ -127,16 +127,32 @@ export const Profile = () => {
                         className="hidden"
                     />
                 </div>
-                <div>
+                <div className="flex-1 w-full">
                     <h1 className="text-3xl font-bold">{displayName}</h1>
                     {user.nickname && <p className="text-gray-400 text-sm mt-0.5">@{user.username}</p>}
                     <p className="text-gray-500 mt-1 capitalize">{user.roleType.toLowerCase()} 账号</p>
-                    <Link
-                        to={`/u/${user.username}`}
-                        className="inline-flex items-center gap-1 text-sm text-primary hover:underline mt-1"
-                    >
-                        <LinkIcon className="w-3 h-3" /> 查看我的公开主页
-                    </Link>
+                    <div className="flex items-center flex-wrap gap-4 mt-3">
+                        <Link
+                            to="/profile/following"
+                            className="flex items-center gap-1 text-sm text-gray-500 hover:text-primary transition-colors"
+                        >
+                            <Users className="w-4 h-4" />
+                            <span className="font-semibold text-gray-700 dark:text-gray-300">关注</span>
+                        </Link>
+                        <Link
+                            to="/profile/followers"
+                            className="flex items-center gap-1 text-sm text-gray-500 hover:text-primary transition-colors"
+                        >
+                            <Users className="w-4 h-4" />
+                            <span className="font-semibold text-gray-700 dark:text-gray-300">粉丝</span>
+                        </Link>
+                        <Link
+                            to={`/u/${user.username}`}
+                            className="inline-flex items-center gap-1 text-sm text-primary hover:underline"
+                        >
+                            <LinkIcon className="w-3 h-3" /> 查看我的公开主页
+                        </Link>
+                    </div>
                 </div>
             </div>
 
