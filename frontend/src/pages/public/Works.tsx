@@ -2,10 +2,22 @@ import React, { useEffect, useState } from 'react';
 import api from '../../services/api';
 import { useAuth } from '../../context/AuthContext';
 import { useToast } from '../../context/ToastContext';
-import { Heart, Search, MessageSquare } from 'lucide-react';
+import { Heart, Search, MessageSquare, Sparkles } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 const API_ROOT = (import.meta.env.VITE_API_URL || 'http://localhost:8063/api').replace(/\/api$/, '');
+
+const NEW_DAYS_THRESHOLD = 7;
+
+const isNewWork = (work: any) => {
+    const dateStr = work.publishedAt || work.createdAt;
+    if (!dateStr) return false;
+    const publishDate = new Date(dateStr);
+    if (isNaN(publishDate.getTime())) return false;
+    const now = new Date();
+    const diffDays = (now.getTime() - publishDate.getTime()) / (1000 * 60 * 60 * 24);
+    return diffDays <= NEW_DAYS_THRESHOLD;
+};
 
 export const Works = () => {
     const [works, setWorks] = useState<any[]>([]);
@@ -91,6 +103,14 @@ export const Works = () => {
                                         <div className="w-full h-full flex items-center justify-center text-gray-400">暂无图片</div>
                                     )}
                                 </Link>
+                                {isNewWork(w) && (
+                                    <div className="absolute top-4 left-4">
+                                        <span className="inline-flex items-center gap-1 px-2.5 py-1 bg-gradient-to-r from-primary to-purple-500 text-white text-xs font-bold rounded-full shadow-lg animate-pulse">
+                                            <Sparkles className="w-3 h-3" />
+                                            NEW
+                                        </span>
+                                    </div>
+                                )}
                                 <button
                                     onClick={() => handleLike(w.id)}
                                     className="absolute top-4 right-4 p-2.5 rounded-full bg-white/90 backdrop-blur shadow-sm hover:scale-110 transition-transform"

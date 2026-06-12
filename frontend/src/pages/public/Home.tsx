@@ -3,8 +3,21 @@ import { Link } from 'react-router-dom';
 import api from '../../services/api';
 import { Button } from '../../components/ui/Button';
 import { BannerCarousel } from '../../components/BannerCarousel';
+import { Sparkles } from 'lucide-react';
 
 const API_ROOT = (import.meta.env.VITE_API_URL || 'http://localhost:8063/api').replace(/\/api$/, '');
+
+const NEW_DAYS_THRESHOLD = 7;
+
+const isNewWork = (work: any) => {
+    const dateStr = work.publishedAt || work.createdAt;
+    if (!dateStr) return false;
+    const publishDate = new Date(dateStr);
+    if (isNaN(publishDate.getTime())) return false;
+    const now = new Date();
+    const diffDays = (now.getTime() - publishDate.getTime()) / (1000 * 60 * 60 * 24);
+    return diffDays <= NEW_DAYS_THRESHOLD;
+};
 
 export const Home = () => {
     const [featuredWorks, setFeaturedWorks] = useState<any[]>([]);
@@ -63,7 +76,13 @@ export const Home = () => {
                                 ) : (
                                     <div className="w-full h-full flex items-center justify-center text-gray-400">暂无图片</div>
                                 )}
-                                <div className="absolute top-4 left-4">
+                                <div className="absolute top-4 left-4 flex gap-2">
+                                    {isNewWork(w) && (
+                                        <span className="inline-flex items-center gap-1 px-2.5 py-1 bg-gradient-to-r from-primary to-purple-500 text-white text-xs font-bold rounded-full shadow-lg animate-pulse">
+                                            <Sparkles className="w-3 h-3" />
+                                            NEW
+                                        </span>
+                                    )}
                                     <span className="px-3 py-1 bg-white/90 backdrop-blur text-sm font-medium rounded-full shadow-sm">
                                         {w.category}
                                     </span>

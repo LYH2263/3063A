@@ -69,7 +69,10 @@ export const getWorks = async (req: Request, res: Response) => {
             where: whereCondition,
             skip: (page - 1) * limit,
             take: limit,
-            orderBy: { createdAt: 'desc' }
+            orderBy: [
+                { publishedAt: 'desc' },
+                { createdAt: 'desc' }
+            ]
         })
     ]);
 
@@ -203,7 +206,9 @@ export const adminApproveWork = async (req: AuthRequest, res: Response) => {
             status: WorkStatus.PUBLISHED,
             reviewerId,
             reviewedAt: new Date(),
-            rejectReason: null
+            rejectReason: null,
+            publishedAt: new Date(),
+            scheduledPublishAt: null
         },
         include: {
             submitter: { select: { id: true, username: true, nickname: true } },
