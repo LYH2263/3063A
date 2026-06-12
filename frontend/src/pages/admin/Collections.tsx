@@ -154,6 +154,11 @@ export const AdminCollections = () => {
         }
     };
 
+    const removeWorkFromList = (workId: number) => {
+        setSelectedWorkIds(prev => prev.filter((id) => id !== workId));
+        setOrderedWorkIds(prev => prev.filter((id) => id !== workId));
+    };
+
     const moveWork = (direction: 'up' | 'down', workId: number) => {
         const index = orderedWorkIds.indexOf(workId);
         if (index === -1) return;
@@ -361,7 +366,7 @@ export const AdminCollections = () => {
                                                     </p>
                                                 </div>
                                                 <button
-                                                    onClick={() => toggleWorkSelection(workId)}
+                                                    onClick={() => removeWorkFromList(workId)}
                                                     className="text-red-500 hover:text-red-600"
                                                     title="移出合集"
                                                 >

@@ -68,6 +68,8 @@ export const getCollectionDetail = async (req: Request, res: Response) => {
             sortOrder: cw.sortOrder,
         }));
 
+    if (publishedWorks.length === 0) return apiResponse(res, 404, 'Collection not found');
+
     const cover = collection.coverUrl || publishedWorks[0]?.mediaUrl || null;
 
     return apiResponse(res, 200, 'Success', {

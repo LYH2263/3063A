@@ -17,8 +17,8 @@ router.get('/', asyncHandler(getPublicFriendLinks));
 
 router.get('/admin/all', authenticate, requireAdmin, asyncHandler(adminGetAllFriendLinks));
 router.post('/admin', authenticate, requireAdmin, logOperation('CREATE_FRIEND_LINK'), asyncHandler(adminCreateFriendLink));
+router.put('/admin/reorder', authenticate, requireAdmin, logOperation('REORDER_FRIEND_LINKS'), asyncHandler(adminReorderFriendLinks));
 router.put('/admin/:id', authenticate, requireAdmin, logOperation('UPDATE_FRIEND_LINK'), asyncHandler(adminUpdateFriendLink));
 router.delete('/admin/:id', authenticate, requireAdmin, logOperation('DELETE_FRIEND_LINK'), asyncHandler(adminDeleteFriendLink));
-router.put('/admin/reorder', authenticate, requireAdmin, logOperation('REORDER_FRIEND_LINKS'), asyncHandler(adminReorderFriendLinks));
 
 export default router;
