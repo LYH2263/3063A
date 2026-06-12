@@ -189,9 +189,17 @@ export const CommentSection: React.FC<CommentSectionProps> = ({
             {user ? (
                 <div className="mb-8 p-5 bg-white dark:bg-slate-900 rounded-2xl border border-gray-100 dark:border-gray-800 shadow-sm">
                     <div className="flex items-start gap-4">
-                        <div className="flex-shrink-0 w-10 h-10 rounded-full bg-gradient-to-br from-primary/80 to-primary flex items-center justify-center text-white font-bold shadow-sm">
-                            {user.username.charAt(0).toUpperCase()}
-                        </div>
+                        {user.avatarUrl ? (
+                            <img
+                                src={user.avatarUrl.startsWith('http') ? user.avatarUrl : `${(import.meta.env.VITE_API_URL || 'http://localhost:8063/api').replace(/\/api$/, '')}${user.avatarUrl}`}
+                                alt={user.nickname || user.username}
+                                className="flex-shrink-0 w-10 h-10 rounded-full object-cover shadow-sm"
+                            />
+                        ) : (
+                            <div className="flex-shrink-0 w-10 h-10 rounded-full bg-gradient-to-br from-primary/80 to-primary flex items-center justify-center text-white font-bold shadow-sm">
+                                {(user.nickname || user.username).charAt(0).toUpperCase()}
+                            </div>
+                        )}
                         <div className="flex-1">
                             <textarea
                                 value={newContent}

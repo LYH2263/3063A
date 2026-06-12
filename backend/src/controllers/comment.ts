@@ -46,6 +46,7 @@ export const getWorkComments = async (req: Request, res: Response) => {
     const whereCondition: any = {
         workId,
         status: 'APPROVED',
+        user: { status: 'ACTIVE' },
     };
 
     const [totalComments, allApprovedComments] = await Promise.all([
@@ -54,7 +55,7 @@ export const getWorkComments = async (req: Request, res: Response) => {
             where: whereCondition,
             orderBy,
             include: {
-                user: { select: { id: true, username: true, roleType: true } },
+                user: { select: { id: true, username: true, nickname: true, avatarUrl: true, roleType: true, status: true } },
             },
         }),
     ]);
@@ -138,7 +139,7 @@ export const createComment = async (req: AuthRequest, res: Response) => {
             status: defaultStatus,
         },
         include: {
-            user: { select: { id: true, username: true, roleType: true } },
+            user: { select: { id: true, username: true, nickname: true, avatarUrl: true, roleType: true, status: true } },
         },
     });
 

@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { Link } from 'react-router-dom';
 import { ChevronDown, ChevronRight, MessageSquare, ThumbsUp, Trash2, Send, X } from 'lucide-react';
 import { commentApi } from '../../services/api';
 import { useAuth } from '../../context/AuthContext';
@@ -6,10 +7,15 @@ import { useToast } from '../../context/ToastContext';
 import { Button } from '../ui/Button';
 import { isAdminRole } from '../../lib/role';
 
+const API_ROOT = (import.meta.env.VITE_API_URL || 'http://localhost:8063/api').replace(/\/api$/, '');
+
 interface CommentUser {
     id: number;
     username: string;
+    nickname?: string | null;
+    avatarUrl?: string | null;
     roleType?: string;
+    status?: string;
 }
 
 export interface CommentData {
@@ -116,20 +122,45 @@ export const CommentItem: React.FC<CommentItemProps> = ({
 
     const marginLeft = depth > 0 ? Math.min(depth, maxDepth) * 24 : 0;
     const showBorder = depth > 0;
+    const displayName = comment.user.nickname || comment.user.username;
+    const avatarUrl = comment.user.avatarUrl;
 
     return (
         <div className="group" style={{ marginLeft }}>
             <div className={`relative py-5 ${showBorder ? 'pl-5 border-l-2 border-gray-100 dark:border-gray-800' : ''}`}>
                 <div className="flex items-start gap-4">
-                    <div className="flex-shrink-0 w-9 h-9 rounded-full bg-gradient-to-br from-primary/80 to-primary flex items-center justify-center text-white font-bold text-sm shadow-sm">
-                        {comment.user.username.charAt(0).toUpperCase()}
-                    </div>
+                    <Link
+                        to={`/u/${comment.user.username}`}
+                        className="flex-shrink-0 hover:opacity-80 transition-opacity"
+                        title={`查看 ${displayName} 的主页`}
+                    >
+                        {avatarUrl ? (
+                            <img
+                                src={avatarUrl.startsWith('http') ? avatarUrl : `${API_ROOT}${avatarUrl}`}
+                                alt={displayName}
+                                className="w-9 h-9 rounded-full object-cover shadow-sm"
+                            />
+                        ) : (
+                            <div className="w-9 h-9 rounded-full bg-gradient-to-br from-primary/80 to-primary flex items-center justify-center text-white font-bold text-sm shadow-sm">
+                                {displayName.charAt(0).toUpperCase()}
+                            </div>
+                        )}
+                    </Link>
 
                     <div className="flex-1 min-w-0">
                         <div className="flex items-center flex-wrap gap-x-3 gap-y-1 mb-2">
-                            <span className="font-semibold text-gray-900 dark:text-white text-sm">
-                                {comment.user.username}
-                            </span>
+                            <Link
+                                to={`/u/${comment.user.username}`}
+                                className="font-semibold text-gray-900 dark:text-white text-sm hover:text-primary transition-colors"
+                                title={`查看 ${displayName} 的主页`}
+                            >
+                                {displayName}
+                            </Link>
+                            {comment.user.nickname && (
+                                <span className="text-gray-400 text-xs">
+                                    @{comment.user.username}
+                                </span>
+                            )}
                             {comment.user.roleType && isAdminRole(comment.user.roleType) && (
                                 <span className="px-2 py-0.5 rounded-full bg-primary/10 text-primary text-xs font-medium">
                                     管理员
