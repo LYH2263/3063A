@@ -4,6 +4,7 @@ import { useToast } from '../../context/ToastContext';
 import { Button } from '../../components/ui/Button';
 import { Input } from '../../components/ui/Input';
 import { Modal } from '../../components/ui/Modal';
+import { RichTextEditor } from '../../components/ui/RichTextEditor';
 import { Trash2, Edit, Plus, ToggleLeft, ToggleRight, Eye, Megaphone, AlertTriangle, PartyPopper, Pin } from 'lucide-react';
 
 const toLocalDateTimeString = (date: Date | string) => {
@@ -249,12 +250,10 @@ export const AdminAnnouncements = () => {
                     <div>
                         <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">内容</label>
                         {formData.contentType === 'rich' ? (
-                            <textarea
+                            <RichTextEditor
                                 value={formData.content}
-                                onChange={e => setFormData({ ...formData, content: e.target.value })}
-                                placeholder="支持 HTML 富文本内容"
-                                rows={6}
-                                className="flex w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent dark:border-gray-700 dark:bg-slate-900 dark:text-gray-50"
+                                onChange={html => setFormData({ ...formData, content: html })}
+                                placeholder="请输入富文本公告内容…"
                             />
                         ) : (
                             <textarea
