@@ -18,6 +18,7 @@ export const AdminCollections = () => {
     const [manageWorksOpen, setManageWorksOpen] = useState(false);
     const [currentCollection, setCurrentCollection] = useState<any>(null);
     const [selectedWorkIds, setSelectedWorkIds] = useState<number[]>([]);
+    const [orderedWorkIds, setOrderedWorkIds] = useState<number[]>([]);
 
     const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
     const [collectionToDelete, setCollectionToDelete] = useState<number | null>(null);
@@ -110,7 +111,9 @@ export const AdminCollections = () => {
         try {
             const res: any = await collectionApi.adminGetCollectionDetail(collection.id);
             setCurrentCollection(res.data);
-            setSelectedWorkIds(res.data.works.map((w: any) => w.id));
+            const ids = res.data.works.map((w: any) => w.id);
+            setSelectedWorkIds(ids);
+            setOrderedWorkIds(ids);
             setManageWorksOpen(true);
         } catch (err: any) {
             error(err.message || '加载合集详情失败');
@@ -119,9 +122,9 @@ export const AdminCollections = () => {
 
     const handleSaveWorks = async () => {
         if (!currentCollection) return;
-        const currentIds = currentCollection.works.map((w: any) => w.id);
-        const toAdd = selectedWorkIds.filter((id) => !currentIds.includes(id));
-        const toRemove = currentIds.filter((id: number) => !selectedWorkIds.includes(id));
+        const originalIds = currentCollection.works.map((w: any) => w.id);
+        const toAdd = orderedWorkIds.filter((id) => !originalIds.includes(id));
+        const toRemove = originalIds.filter((id: number) => !orderedWorkIds.includes(id));
 
         try {
             if (toAdd.length > 0) {
@@ -130,6 +133,9 @@ export const AdminCollections = () => {
             if (toRemove.length > 0) {
                 await collectionApi.adminRemoveWorks(currentCollection.id, toRemove);
             }
+            const orders = orderedWorkIds.map((workId, index) => ({ workId, sortOrder: index }));
+            await collectionApi.adminReorderWorks(currentCollection.id, orders);
+
             success('作品更新成功');
             setManageWorksOpen(false);
             fetchCollections();
@@ -141,31 +147,23 @@ export const AdminCollections = () => {
     const toggleWorkSelection = (workId: number) => {
         if (selectedWorkIds.includes(workId)) {
             setSelectedWorkIds(selectedWorkIds.filter((id) => id !== workId));
+            setOrderedWorkIds(orderedWorkIds.filter((id) => id !== workId));
         } else {
             setSelectedWorkIds([...selectedWorkIds, workId]);
+            setOrderedWorkIds([...orderedWorkIds, workId]);
         }
     };
 
-    const moveWork = async (direction: 'up' | 'down', workId: number) => {
-        if (!currentCollection) return;
-        const works = [...currentCollection.works];
-        const index = works.findIndex((w) => w.id === workId);
+    const moveWork = (direction: 'up' | 'down', workId: number) => {
+        const index = orderedWorkIds.indexOf(workId);
         if (index === -1) return;
         if (direction === 'up' && index === 0) return;
-        if (direction === 'down' && index === works.length - 1) return;
+        if (direction === 'down' && index === orderedWorkIds.length - 1) return;
 
+        const newIds = [...orderedWorkIds];
         const swapIndex = direction === 'up' ? index - 1 : index + 1;
-        [works[index], works[swapIndex]] = [works[swapIndex], works[index]];
-
-        const orders = works.map((w, i) => ({ workId: w.id, sortOrder: i }));
-        try {
-            await collectionApi.adminReorderWorks(currentCollection.id, orders);
-            const res: any = await collectionApi.adminGetCollectionDetail(currentCollection.id);
-            setCurrentCollection(res.data);
-            success('排序已更新');
-        } catch (err: any) {
-            error(err.message || '排序失败');
-        }
+        [newIds[index], newIds[swapIndex]] = [newIds[swapIndex], newIds[index]];
+        setOrderedWorkIds(newIds);
     };
 
     return (
@@ -312,62 +310,66 @@ export const AdminCollections = () => {
                         {/* Selected works with ordering */}
                         <div>
                             <h4 className="font-medium text-sm mb-3 text-gray-700">
-                                已添加作品（拖动按钮调整顺序）
+                                已添加作品（点击按钮调整顺序）
                             </h4>
                             <div className="space-y-2 max-h-60 overflow-y-auto border border-gray-200 rounded-lg p-2">
-                                {currentCollection.works.length === 0 ? (
+                                {orderedWorkIds.length === 0 ? (
                                     <p className="text-center text-gray-400 py-4 text-sm">暂无作品</p>
                                 ) : (
-                                    currentCollection.works.map((w: any, index: number) => (
-                                        <div
-                                            key={w.id}
-                                            className="flex items-center gap-3 p-2 bg-gray-50 rounded-lg"
-                                        >
-                                            <div className="flex flex-col gap-0.5">
-                                                <button
-                                                    onClick={() => moveWork('up', w.id)}
-                                                    disabled={index === 0}
-                                                    className="text-gray-400 hover:text-primary disabled:opacity-30 disabled:cursor-not-allowed"
-                                                >
-                                                    <ChevronUp className="w-4 h-4" />
-                                                </button>
-                                                <button
-                                                    onClick={() => moveWork('down', w.id)}
-                                                    disabled={index === currentCollection.works.length - 1}
-                                                    className="text-gray-400 hover:text-primary disabled:opacity-30 disabled:cursor-not-allowed"
-                                                >
-                                                    <ChevronDown className="w-4 h-4" />
-                                                </button>
-                                            </div>
-                                            <span className="text-xs text-gray-400 w-6 text-center">#{index + 1}</span>
-                                            <div className="w-10 h-10 bg-gray-200 rounded overflow-hidden flex-shrink-0">
-                                                {w.mediaUrl && (
-                                                    <img
-                                                        src={w.mediaUrl.startsWith('http') ? w.mediaUrl : `${API_ROOT}${w.mediaUrl}`}
-                                                        alt=""
-                                                        className="w-full h-full object-cover"
-                                                    />
-                                                )}
-                                            </div>
-                                            <div className="flex-1 min-w-0">
-                                                <p className="text-sm font-medium truncate">{w.title}</p>
-                                                <p className="text-xs text-gray-500">
-                                                    {w.status === 'PUBLISHED' ? (
-                                                        <span className="text-green-600">已发布</span>
-                                                    ) : (
-                                                        <span className="text-yellow-600">草稿</span>
-                                                    )}
-                                                </p>
-                                            </div>
-                                            <button
-                                                onClick={() => toggleWorkSelection(w.id)}
-                                                className="text-red-500 hover:text-red-600"
-                                                title="移出合集"
+                                    orderedWorkIds.map((workId: number, index: number) => {
+                                        const w = allWorks.find((aw) => aw.id === workId);
+                                        if (!w) return null;
+                                        return (
+                                            <div
+                                                key={workId}
+                                                className="flex items-center gap-3 p-2 bg-gray-50 rounded-lg"
                                             >
-                                                <X className="w-4 h-4" />
-                                            </button>
-                                        </div>
-                                    ))
+                                                <div className="flex flex-col gap-0.5">
+                                                    <button
+                                                        onClick={() => moveWork('up', workId)}
+                                                        disabled={index === 0}
+                                                        className="text-gray-400 hover:text-primary disabled:opacity-30 disabled:cursor-not-allowed"
+                                                    >
+                                                        <ChevronUp className="w-4 h-4" />
+                                                    </button>
+                                                    <button
+                                                        onClick={() => moveWork('down', workId)}
+                                                        disabled={index === orderedWorkIds.length - 1}
+                                                        className="text-gray-400 hover:text-primary disabled:opacity-30 disabled:cursor-not-allowed"
+                                                    >
+                                                        <ChevronDown className="w-4 h-4" />
+                                                    </button>
+                                                </div>
+                                                <span className="text-xs text-gray-400 w-6 text-center">#{index + 1}</span>
+                                                <div className="w-10 h-10 bg-gray-200 rounded overflow-hidden flex-shrink-0">
+                                                    {w.mediaUrl && (
+                                                        <img
+                                                            src={w.mediaUrl.startsWith('http') ? w.mediaUrl : `${API_ROOT}${w.mediaUrl}`}
+                                                            alt=""
+                                                            className="w-full h-full object-cover"
+                                                        />
+                                                    )}
+                                                </div>
+                                                <div className="flex-1 min-w-0">
+                                                    <p className="text-sm font-medium truncate">{w.title}</p>
+                                                    <p className="text-xs text-gray-500">
+                                                        {w.status === 'PUBLISHED' ? (
+                                                            <span className="text-green-600">已发布</span>
+                                                        ) : (
+                                                            <span className="text-yellow-600">草稿</span>
+                                                        )}
+                                                    </p>
+                                                </div>
+                                                <button
+                                                    onClick={() => toggleWorkSelection(workId)}
+                                                    className="text-red-500 hover:text-red-600"
+                                                    title="移出合集"
+                                                >
+                                                    <X className="w-4 h-4" />
+                                                </button>
+                                            </div>
+                                        );
+                                    })
                                 )}
                             </div>
                         </div>

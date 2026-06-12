@@ -25,19 +25,21 @@ export const getCollections = async (req: Request, res: Response) => {
         },
     });
 
-    const result = collections.map((c) => {
-        const publishedWorks = c.works.filter((cw) => cw.work.status === 'PUBLISHED');
-        const cover = c.coverUrl || publishedWorks[0]?.work.mediaUrl || null;
-        return {
-            id: c.id,
-            title: c.title,
-            description: c.description,
-            coverUrl: cover,
-            workCount: publishedWorks.length,
-            createdAt: c.createdAt,
-            updatedAt: c.updatedAt,
-        };
-    });
+    const result = collections
+        .map((c) => {
+            const publishedWorks = c.works.filter((cw) => cw.work.status === 'PUBLISHED');
+            const cover = c.coverUrl || publishedWorks[0]?.work.mediaUrl || null;
+            return {
+                id: c.id,
+                title: c.title,
+                description: c.description,
+                coverUrl: cover,
+                workCount: publishedWorks.length,
+                createdAt: c.createdAt,
+                updatedAt: c.updatedAt,
+            };
+        })
+        .filter((c) => c.workCount > 0);
 
     return apiResponse(res, 200, 'Success', result);
 };
