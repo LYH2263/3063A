@@ -90,6 +90,7 @@ export const CommentItem: React.FC<CommentItemProps> = ({
             setReplyContent('');
             setReplyOpen(false);
             if (res.data && res.data.status === 'APPROVED') {
+                setChildrenExpanded(true);
                 onReplySuccess?.(res.data);
             }
             success(res.message || '回复发表成功');
@@ -239,11 +240,7 @@ export const CommentItem: React.FC<CommentItemProps> = ({
                             comment={child}
                             depth={depth + 1}
                             onDeleteSuccess={onDeleteSuccess}
-                            onReplySuccess={(newChild) => {
-                                child.children = child.children || [];
-                                child.children.push(newChild);
-                                onReplySuccess?.(newChild);
-                            }}
+                            onReplySuccess={onReplySuccess}
                         />
                     ))}
                 </div>

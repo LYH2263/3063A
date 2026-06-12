@@ -48,7 +48,7 @@ export const getWorkComments = async (req: Request, res: Response) => {
         status: 'APPROVED',
     };
 
-    const [total, allApprovedComments] = await Promise.all([
+    const [totalComments, allApprovedComments] = await Promise.all([
         prisma.comment.count({ where: whereCondition }),
         prisma.comment.findMany({
             where: whereCondition,
@@ -60,15 +60,17 @@ export const getWorkComments = async (req: Request, res: Response) => {
     ]);
 
     const tree = buildCommentTree(allApprovedComments);
+    const rootCount = tree.length;
 
     const start = (page - 1) * limit;
     const paginatedRoots = tree.slice(start, start + limit);
 
     return apiResponse(res, 200, 'Success', {
-        total,
+        total: totalComments,
+        rootCount,
         page,
         limit,
-        totalPages: Math.ceil(total / limit),
+        totalPages: Math.ceil(rootCount / limit),
         sort,
         comments: paginatedRoots,
     });

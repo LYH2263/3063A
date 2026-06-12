@@ -122,7 +122,28 @@ export const CommentSection: React.FC<CommentSectionProps> = ({
         onTotalChange?.(Math.max(0, total - deletedCount));
     }, [total, onTotalChange]);
 
-    const handleReplySuccess = useCallback((_newComment: CommentData) => {
+    const handleReplySuccess = useCallback((newComment: CommentData) => {
+        if (newComment.status !== 'APPROVED') return;
+
+        const addReplyToTree = (items: CommentData[]): CommentData[] => {
+            return items.map((item) => {
+                if (item.id === newComment.parentId) {
+                    return {
+                        ...item,
+                        children: [...(item.children || []), newComment],
+                    };
+                }
+                if (item.children && item.children.length > 0) {
+                    return {
+                        ...item,
+                        children: addReplyToTree(item.children),
+                    };
+                }
+                return item;
+            });
+        };
+
+        setComments((prev) => addReplyToTree(prev));
         setTotal((t) => t + 1);
         onTotalChange?.(total + 1);
     }, [total, onTotalChange]);
